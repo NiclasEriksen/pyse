@@ -1,0 +1,470 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>openal.audio - advanced sound support &mdash; PyAL 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyAL 0.1.0 documentation" href="index.html" />
+    <link rel="next" title="openal.loaders - loading sounds" href="loaders.html" />
+    <link rel="prev" title="Direct OpenAL interaction" href="openal.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="loaders.html" title="openal.loaders - loading sounds"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="openal.html" title="Direct OpenAL interaction"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyAL 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="module-openal.audio"></span><div class="section" id="openal-audio-advanced-sound-support">
+<h1>openal.audio -  advanced sound support<a class="headerlink" href="#openal-audio-advanced-sound-support" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference internal" href="#module-openal.audio" title="openal.audio: Advanced OpenAL audio module"><tt class="xref py py-mod docutils literal"><span class="pre">openal.audio</span></tt></a> is a set of advanced, pythonic classes for 3D positional
+audio support via the OpenAL standard. It utilises <a class="reference internal" href="openal.html#module-openal" title="openal: Simple OpenAL wrapper module"><tt class="xref py py-mod docutils literal"><span class="pre">openal</span></tt></a>, but hides all
+the <a class="reference external" href="http://docs.python.org/library/ctypes.html#ctypes" title="(in Python v2.7)"><tt class="xref py py-mod docutils literal"><span class="pre">ctypes</span></tt></a> related, sequential programming workflow from you. It is
+designed to be non-invasive within a component-based application.</p>
+<p>At least three classes need to be used for playing back audio data.
+<a class="reference internal" href="#openal.audio.SoundSink" title="openal.audio.SoundSink"><tt class="xref py py-class docutils literal"><span class="pre">SoundSink</span></tt></a> handles the audio device connection and controls the overall
+playback mechanisms. The <a class="reference internal" href="#openal.audio.SoundSource" title="openal.audio.SoundSource"><tt class="xref py py-class docutils literal"><span class="pre">SoundSource</span></tt></a> represents an in-application
+object that emits sounds and a <a class="reference internal" href="#openal.audio.SoundData" title="openal.audio.SoundData"><tt class="xref py py-class docutils literal"><span class="pre">SoundData</span></tt></a> contains the PCM audio data
+to be played.</p>
+<div class="section" id="device-handling">
+<h2>Device handling<a class="headerlink" href="#device-handling" title="Permalink to this headline">¶</a></h2>
+<p>To actually play back sound or to stream sound to a third-party system (e.g. a
+sound server or file), an audio output device needs to be opened. It usually
+allows the software to access the audio hardware via the operating system, so
+that audio data can be recorded or played back.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">sink</span> <span class="o">=</span> <span class="n">SoundSink</span><span class="p">()</span>        <span class="c"># Open the default audio output device</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sink</span> <span class="o">=</span> <span class="n">SoundSink</span><span class="p">(</span><span class="s">&quot;oss&quot;</span><span class="p">)</span>   <span class="c"># Open the OSS audio output device</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sink</span> <span class="o">=</span> <span class="n">SoundSink</span><span class="p">(</span><span class="s">&quot;winmm&quot;</span><span class="p">)</span> <span class="c"># Open the Windows MM audio output device</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Depending on what to accomplish and what kind of quality for audio output to
+have, you might want to use a specific audio output device to be passed as
+argument to the <a class="reference internal" href="#openal.audio.SoundSink" title="openal.audio.SoundSink"><tt class="xref py py-class docutils literal"><span class="pre">SoundSink</span></tt></a> constructor.</p>
+</div>
+<p>It is possible to create multiple <a class="reference internal" href="#openal.audio.SoundSink" title="openal.audio.SoundSink"><tt class="xref py py-class docutils literal"><span class="pre">SoundSink</span></tt></a> instances for the same
+device. OpenAL specifies an additional device-dependent execution context, so
+that multiple contexts (with e.g. different settings) can be used on one
+device. Likewise, multiple <a class="reference internal" href="#openal.audio.SoundSink" title="openal.audio.SoundSink"><tt class="xref py py-class docutils literal"><span class="pre">SoundSink</span></tt></a> objects can use the same device,
+while each of them uses its own execution context.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Several OpenAL functions perform context-specific operations. If you mix
+function calls from <a class="reference internal" href="openal.html#module-openal" title="openal: Simple OpenAL wrapper module"><tt class="xref py py-mod docutils literal"><span class="pre">openal</span></tt></a> with the <a class="reference internal" href="#module-openal.audio" title="openal.audio: Advanced OpenAL audio module"><tt class="xref py py-mod docutils literal"><span class="pre">openal.audio</span></tt></a>
+module, you should ensure that the correct <a class="reference internal" href="#openal.audio.SoundSink" title="openal.audio.SoundSink"><tt class="xref py py-class docutils literal"><span class="pre">SoundSink</span></tt></a> is activated
+via <a class="reference internal" href="#openal.audio.SoundSink.activate" title="openal.audio.SoundSink.activate"><tt class="xref py py-meth docutils literal"><span class="pre">SoundSink.activate()</span></tt></a>.</p>
+</div>
+<div class="section" id="placing-the-listener">
+<h3>Placing the listener<a class="headerlink" href="#placing-the-listener" title="Permalink to this headline">¶</a></h3>
+<p>The OpenAL standard supports 3D positional audio, so that a source of sound can
+be placed anywhere relative to the listener (the user of the application or
+some in-application avatar).</p>
+<img alt="_images/openalaudio.png" src="_images/openalaudio.png" />
+<p>The image above shows a listener surrounded by three sources of sound. Two are
+in front of them, while one is behind the listener, moving from left to right.</p>
+<p>OpenAL only knows about a single listener at each time. Each <a class="reference internal" href="#openal.audio.SoundSink" title="openal.audio.SoundSink"><tt class="xref py py-class docutils literal"><span class="pre">SoundSink</span></tt></a>
+can manage its own listener, which represents the user or in-application
+avatar. As such, it represents the &#8216;pick-up&#8217; point of sounds.</p>
+<p>Placing and moving the listener (as well as sound sources in OpenAL) is done in
+a RHS coordinate system. That said, the horizontal extent of your monitor
+represents the x-axis, the vertical the y-axis and the visual line between your
+eyes and the monitor surface reprensents the z-axis.</p>
+<img alt="_images/coordinate_rhs.png" src="_images/coordinate_rhs.png" />
+<p>It is crucial to understand how placing and moving sound sources and the
+listener will influence the audio experience. By default, the listener for each
+individual <a class="reference internal" href="#openal.audio.SoundSink" title="openal.audio.SoundSink"><tt class="xref py py-class docutils literal"><span class="pre">SoundSink</span></tt></a> is placed at the center of the coordinate system,
+<tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></tt>. It does not move and looks along the z-axis &#8220;into&#8221; the monitor
+(most likely the same direction you are looking at right now).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">listener</span> <span class="o">=</span> <span class="n">SoundListener</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">listener</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">listener</span><span class="o">.</span><span class="n">velocity</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">listener</span><span class="o">.</span><span class="n">orientation</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<img alt="_images/listener_default.png" src="_images/listener_default.png" />
+<p>While the <a class="reference internal" href="#openal.audio.SoundListener.position" title="openal.audio.SoundListener.position"><tt class="xref py py-attr docutils literal"><span class="pre">SoundListener.position</span></tt></a> and <a class="reference internal" href="#openal.audio.SoundListener.velocity" title="openal.audio.SoundListener.velocity"><tt class="xref py py-attr docutils literal"><span class="pre">SoundListener.velocity</span></tt></a> are
+quite obvious in their doing, namely giving the listener a (initial) position
+and movement, <a class="reference internal" href="#openal.audio.SoundListener.orientation" title="openal.audio.SoundListener.orientation"><tt class="xref py py-attr docutils literal"><span class="pre">SoundListener.orientation</span></tt></a> denotes the direction the
+listener &#8220;looks at&#8221;. The orientation consists of two components, the general
+direction the listener is headed at and rotation. Both are expressed as 3-value
+tuples for the x-, y- and z-axis of the coordinate system.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">listener</span><span class="o">.</span><span class="n">orientation</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#                       ^^^^^^^^    ^^^^^^^</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#                       direction   rotation</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Changing the first 3 values will influence the direction, the listener looks at.</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">listener</span><span class="o">.</span><span class="n">orientation</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<img alt="_images/listener_xz.png" src="_images/listener_xz.png" />
+<p>Changing the last 3 values will influence the rotation of the looking direction.</p>
+<img alt="_images/listener_xyz.png" src="_images/listener_xyz.png" />
+<p>The orientation defines a orthogonal listening direction, so that any sounds the
+user (or avatar) hears, are processed correctly. If you imagine a car driving
+by on your right side, while you are looking straight ahead (parallel to the
+car&#8217;s driving direction), you will hear the car on your right side (with your
+right ear receiving the most noise). If you look on the street, following the
+car with your eyes and head, the listening experience will differ (since both
+ears of you receive the noise in nearly the same way).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Setting the orientation in OpenAL is somehat similar ot OpenGL&#8217;s
+<tt class="docutils literal"><span class="pre">gluLookAt</span></tt> function, which adjusts the view direction. You might want
+to take a look at <a class="reference external" href="http://www.glprogramming.com/red/chapter03.html#name2">http://www.glprogramming.com/red/chapter03.html#name2</a> for
+further details about that.</p>
+</div>
+</div>
+<div class="section" id="creating-sound-sources">
+<h3>Creating sound sources<a class="headerlink" href="#creating-sound-sources" title="Permalink to this headline">¶</a></h3>
+<p>A <a class="reference internal" href="#openal.audio.SoundSource" title="openal.audio.SoundSource"><tt class="xref py py-class docutils literal"><span class="pre">SoundSource</span></tt></a> represents an object that can emit sounds. It can be any
+kind of object and allows you to play any sound, you put into it. In an
+application you can enable objects to emit sounds, by binding a
+<a class="reference internal" href="#openal.audio.SoundSource" title="openal.audio.SoundSource"><tt class="xref py py-class docutils literal"><span class="pre">SoundSource</span></tt></a> to them.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">source</span> <span class="o">=</span> <span class="n">SoundSource</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">more details</p>
+</div>
+</div>
+<div class="section" id="creating-and-playing-sounds">
+<h3>Creating and playing sounds<a class="headerlink" href="#creating-and-playing-sounds" title="Permalink to this headline">¶</a></h3>
+<p>To create and play sounds you use <a class="reference internal" href="#openal.audio.SoundData" title="openal.audio.SoundData"><tt class="xref py py-class docutils literal"><span class="pre">SoundData</span></tt></a> objects, which contain the
+raw PCM data to be played. To play the sound, the <a class="reference internal" href="#openal.audio.SoundData" title="openal.audio.SoundData"><tt class="xref py py-class docutils literal"><span class="pre">SoundData</span></tt></a> needs to
+be queued on a <a class="reference internal" href="#openal.audio.SoundSource" title="openal.audio.SoundSource"><tt class="xref py py-class docutils literal"><span class="pre">SoundSource</span></tt></a>, which provides all the necessary
+information about the volume, the position relative to the listener and so
+on.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">wavsound</span> <span class="o">=</span> <span class="n">load_wav_file</span><span class="p">(</span><span class="s">&quot;vroom.wav&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>There are some helper functions, which create <a class="reference internal" href="#openal.audio.SoundData" title="openal.audio.SoundData"><tt class="xref py py-class docutils literal"><span class="pre">SoundData</span></tt></a> objects from
+audio files. If you have a raw PCM data buffer, you can create a
+<a class="reference internal" href="#openal.audio.SoundData" title="openal.audio.SoundData"><tt class="xref py py-class docutils literal"><span class="pre">SoundData</span></tt></a> from it directly.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">rawsound</span> <span class="o">=</span> <span class="n">SoundData</span><span class="p">(</span><span class="n">pcmbuf</span><span class="p">,</span> <span class="n">size_of_buf</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">bitrate</span><span class="p">,</span> <span class="n">frequency_in_hz</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Queueing the loaded sound is done via the <a class="reference internal" href="#openal.audio.SoundSource.queue" title="openal.audio.SoundSource.queue"><tt class="xref py py-meth docutils literal"><span class="pre">SoundSource.queue()</span></tt></a> method,
+which appends the sound to the source for processing and playback.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">wavsound</span> <span class="o">=</span> <span class="n">load_wav_file</span><span class="p">(</span><span class="s">&quot;vroom.wav&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">source</span><span class="o">.</span><span class="n">queue</span><span class="p">(</span><span class="n">wavsound</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You just need to inform the <a class="reference internal" href="#openal.audio.SoundSink" title="openal.audio.SoundSink"><tt class="xref py py-class docutils literal"><span class="pre">SoundSink</span></tt></a> about the <a class="reference internal" href="#openal.audio.SoundSource" title="openal.audio.SoundSource"><tt class="xref py py-class docutils literal"><span class="pre">SoundSource</span></tt></a>
+afterwards, so that it knows that a new sound emitter is available.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">soundsink</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When you add other sounds to play to the source, they will be picked up
+automatically for playback, as long as the <a class="reference internal" href="#openal.audio.SoundSource" title="openal.audio.SoundSource"><tt class="xref py py-class docutils literal"><span class="pre">SoundSource</span></tt></a> is not paused
+or ran out of something to play.</p>
+</div>
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="openal.audio.OpenALError">
+<em class="property">class </em><tt class="descclassname">openal.audio.</tt><tt class="descname">OpenALError</tt><big>(</big><span class="optional">[</span><em>msg=None</em><span class="optional">[</span>, <em>alcdevice=None</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#openal.audio.OpenALError" title="Permalink to this definition">¶</a></dt>
+<dd><p>An OpenAL specific exception class. If a new <a class="reference internal" href="#openal.audio.OpenALError" title="openal.audio.OpenALError"><tt class="xref py py-class docutils literal"><span class="pre">OpenALError</span></tt></a> is created
+and no <em>msg</em> is provided, the message will be set a mapped value of
+<tt class="xref py py-meth docutils literal"><span class="pre">openal.al.alGetError()</span></tt>. If an <tt class="xref py py-class docutils literal"><span class="pre">openal.alc.ALCdevice</span></tt> is
+provided as <em>alcdevice</em>, <tt class="xref py py-meth docutils literal"><span class="pre">openal.alc.alcGetError()</span></tt> will be used
+instead of <tt class="xref py py-meth docutils literal"><span class="pre">openal.al.alGetError()</span></tt>.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="openal.audio.SoundData">
+<em class="property">class </em><tt class="descclassname">openal.audio.</tt><tt class="descname">SoundData</tt><big>(</big><em>data=None</em>, <em>channels=None</em>, <em>bitrate=None</em>, <em>size=None</em>, <em>frequency=None</em>, <em>dformat=None</em><big>)</big><a class="headerlink" href="#openal.audio.SoundData" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="#openal.audio.SoundData" title="openal.audio.SoundData"><tt class="xref py py-class docutils literal"><span class="pre">SoundData</span></tt></a> consists of a PCM audio data buffer, the audio
+frequency and additional format information to allow easy buffering through
+OpenAL.</p>
+<dl class="attribute">
+<dt id="openal.audio.SoundData.channels">
+<tt class="descname">channels</tt><a class="headerlink" href="#openal.audio.SoundData.channels" title="Permalink to this definition">¶</a></dt>
+<dd><p>The channel count for the sound data.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="openal.audio.SoundData.bitrate">
+<tt class="descname">bitrate</tt><a class="headerlink" href="#openal.audio.SoundData.bitrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>The bitrate of the sound data.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="openal.audio.SoundData.size">
+<tt class="descname">size</tt><a class="headerlink" href="#openal.audio.SoundData.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>The buffer size in bytes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="openal.audio.SoundData.frequency">
+<tt class="descname">frequency</tt><a class="headerlink" href="#openal.audio.SoundData.frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>The sound frequency in Hz.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="openal.audio.SoundData.data">
+<tt class="descname">data</tt><a class="headerlink" href="#openal.audio.SoundData.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>The buffered audio data.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="openal.audio.SoundListener">
+<em class="property">class </em><tt class="descclassname">openal.audio.</tt><tt class="descname">SoundListener</tt><big>(</big><em>position=[0, 0, 0], velocity=[0, 0, 0],                       orientation=[0, 0, -1, 0, 1, 0]</em><big>)</big><a class="headerlink" href="#openal.audio.SoundListener" title="Permalink to this definition">¶</a></dt>
+<dd><p>A listener object within the 3D audio space.</p>
+<dl class="attribute">
+<dt id="openal.audio.SoundListener.orientation">
+<tt class="descname">orientation</tt><a class="headerlink" href="#openal.audio.SoundListener.orientation" title="Permalink to this definition">¶</a></dt>
+<dd><p>The listening orientation as 6-value list.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="openal.audio.SoundListener.position">
+<tt class="descname">position</tt><a class="headerlink" href="#openal.audio.SoundListener.position" title="Permalink to this definition">¶</a></dt>
+<dd><p>The listener position as 3-value list.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="openal.audio.SoundListener.velocity">
+<tt class="descname">velocity</tt><a class="headerlink" href="#openal.audio.SoundListener.velocity" title="Permalink to this definition">¶</a></dt>
+<dd><p>The movement velocity as 3-value list.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="openal.audio.SoundListener.gain">
+<tt class="descname">gain</tt><a class="headerlink" href="#openal.audio.SoundListener.gain" title="Permalink to this definition">¶</a></dt>
+<dd><p>The relative sound volume (perceiptive for the listener).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="openal.audio.SoundListener.changed">
+<tt class="descname">changed</tt><a class="headerlink" href="#openal.audio.SoundListener.changed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates, if an attribute has been changed.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="openal.audio.SoundSource">
+<em class="property">class </em><tt class="descclassname">openal.audio.</tt><tt class="descname">SoundSource</tt><big>(</big><em>gain=1.0, pitch=1.0, position=[0, 0, 0],                     velocity=[0, 0, 0]</em><big>)</big><a class="headerlink" href="#openal.audio.SoundSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>An object within the application world, which can emit sounds.</p>
+<dl class="attribute">
+<dt id="openal.audio.SoundSource.gain">
+<tt class="descname">gain</tt><a class="headerlink" href="#openal.audio.SoundSource.gain" title="Permalink to this definition">¶</a></dt>
+<dd><p>The volume gain of the source.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="openal.audio.SoundSource.pitch">
+<tt class="descname">pitch</tt><a class="headerlink" href="#openal.audio.SoundSource.pitch" title="Permalink to this definition">¶</a></dt>
+<dd><p>The pitch of the source.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="openal.audio.SoundSource.position">
+<tt class="descname">position</tt><a class="headerlink" href="#openal.audio.SoundSource.position" title="Permalink to this definition">¶</a></dt>
+<dd><p>The (initial) position of the source as 3-value tuple in a x-y-z
+coordinate system.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="openal.audio.SoundSource.velocity">
+<tt class="descname">velocity</tt><a class="headerlink" href="#openal.audio.SoundSource.velocity" title="Permalink to this definition">¶</a></dt>
+<dd><p>The velocity of the source as 3-value tuple in a x-y-z coordinate system.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="openal.audio.SoundSource.queue">
+<tt class="descname">queue</tt><big>(</big><em>sounddata : SoundData</em><big>)</big> &rarr; None<a class="headerlink" href="#openal.audio.SoundSource.queue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a <a class="reference internal" href="#openal.audio.SoundData" title="openal.audio.SoundData"><tt class="xref py py-class docutils literal"><span class="pre">SoundData</span></tt></a> audio buffer to the source&#8217;s processing and
+playback queue.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="openal.audio.SoundSink">
+<em class="property">class </em><tt class="descclassname">openal.audio.</tt><tt class="descname">SoundSink</tt><big>(</big><em>device=None</em><big>)</big><a class="headerlink" href="#openal.audio.SoundSink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Audio playback system.</p>
+<p>The SoundSink handles audio output for sound sources. It connects to an
+audio output device and manages the source settings, their buffer queues
+and the playback of them.</p>
+<dl class="attribute">
+<dt id="openal.audio.SoundSink.device">
+<tt class="descname">device</tt><a class="headerlink" href="#openal.audio.SoundSink.device" title="Permalink to this definition">¶</a></dt>
+<dd><p>The used OpenAL <tt class="xref py py-class docutils literal"><span class="pre">openal.alc.ALCdevice</span></tt>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="openal.audio.SoundSink.context">
+<tt class="descname">context</tt><a class="headerlink" href="#openal.audio.SoundSink.context" title="Permalink to this definition">¶</a></dt>
+<dd><p>The used <tt class="xref py py-class docutils literal"><span class="pre">openal.alc.ALCcontext</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="openal.audio.SoundSink.activate">
+<tt class="descname">activate</tt><big>(</big><big>)</big> &rarr; None<a class="headerlink" href="#openal.audio.SoundSink.activate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Activates the <a class="reference internal" href="#openal.audio.SoundSink" title="openal.audio.SoundSink"><tt class="xref py py-class docutils literal"><span class="pre">SoundSink</span></tt></a>, marking its <a class="reference internal" href="#openal.audio.SoundSink.context" title="openal.audio.SoundSink.context"><tt class="xref py py-attr docutils literal"><span class="pre">context</span></tt></a> as the
+currently active one.</p>
+<p>Subsequent OpenAL operations are done in the context of the
+SoundSink&#8217;s bindings.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="openal.audio.SoundSink.set_listener">
+<tt class="descname">set_listener</tt><big>(</big><em>listener : SoundListener</em><big>)</big> &rarr; None<a class="headerlink" href="#openal.audio.SoundSink.set_listener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the listener position for the <a class="reference internal" href="#openal.audio.SoundSink" title="openal.audio.SoundSink"><tt class="xref py py-class docutils literal"><span class="pre">SoundSink</span></tt></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This implicitly activates the <a class="reference internal" href="#openal.audio.SoundSink" title="openal.audio.SoundSink"><tt class="xref py py-class docutils literal"><span class="pre">SoundSink</span></tt></a>.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="openal.audio.SoundSink.process_source">
+<tt class="descname">process_source</tt><big>(</big><em>source : SoundSource</em><big>)</big> &rarr; None<a class="headerlink" href="#openal.audio.SoundSink.process_source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes a single <a class="reference internal" href="#openal.audio.SoundSource" title="openal.audio.SoundSource"><tt class="xref py py-class docutils literal"><span class="pre">SoundSource</span></tt></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This does <em>not</em> activate the <a class="reference internal" href="#openal.audio.SoundSink" title="openal.audio.SoundSink"><tt class="xref py py-class docutils literal"><span class="pre">SoundSink</span></tt></a>. If another
+<a class="reference internal" href="#openal.audio.SoundSink" title="openal.audio.SoundSink"><tt class="xref py py-class docutils literal"><span class="pre">SoundSink</span></tt></a> is active, chances are good that the
+source is processed in that <a class="reference internal" href="#openal.audio.SoundSink" title="openal.audio.SoundSink"><tt class="xref py py-class docutils literal"><span class="pre">SoundSink</span></tt></a>.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="openal.audio.SoundSink.process">
+<tt class="descname">process</tt><big>(</big><em>world</em>, <em>components</em><big>)</big> &rarr; None<a class="headerlink" href="#openal.audio.SoundSink.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes <a class="reference internal" href="#openal.audio.SoundSource" title="openal.audio.SoundSource"><tt class="xref py py-class docutils literal"><span class="pre">SoundSource</span></tt></a> components, according to their
+<tt class="xref py py-attr docutils literal"><span class="pre">SoundSource.request</span></tt></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This implicitly activates the <a class="reference internal" href="#openal.audio.SoundSink" title="openal.audio.SoundSink"><tt class="xref py py-class docutils literal"><span class="pre">SoundSink</span></tt></a>.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">openal.audio -  advanced sound support</a><ul>
+<li><a class="reference internal" href="#device-handling">Device handling</a><ul>
+<li><a class="reference internal" href="#placing-the-listener">Placing the listener</a></li>
+<li><a class="reference internal" href="#creating-sound-sources">Creating sound sources</a></li>
+<li><a class="reference internal" href="#creating-and-playing-sounds">Creating and playing sounds</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="openal.html"
+                        title="previous chapter">Direct OpenAL interaction</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="loaders.html"
+                        title="next chapter">openal.loaders - loading sounds</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/audio.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="loaders.html" title="openal.loaders - loading sounds"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="openal.html" title="Direct OpenAL interaction"
+             >previous</a> |</li>
+        <li><a href="index.html">PyAL 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012-2013, Marcus von Appen.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

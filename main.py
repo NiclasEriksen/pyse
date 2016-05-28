@@ -1,6 +1,7 @@
 import os
 import logging
 import pyglet
+from utils.ebs import World
 from pyglet.gl import *
 import pymunk
 from functions import *

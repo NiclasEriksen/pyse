@@ -1,3 +1,0 @@
-ogg_include_dir = /usr/local/include
-ogg_libs = ogg
-ogg_lib_dir = /usr/local/lib

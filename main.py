@@ -7,11 +7,11 @@ import pymunk
 from functions import *
 from collections import OrderedDict
 from tile import tile_img
-from player import Player
-from editor import Editor
+from entities import *
 from components import *
 from systems import *
-from entities import *
+from player import Player
+from editor import Editor
 
 pyglet.options['debug_gl'] = False
 pyglet.options["audio"] = ("openal", "silent")
@@ -114,11 +114,21 @@ class CollideableObject:
         self.sprite.x = int(self.x + ox)
 
 
+class GameWorld(World):
+
+    def __init__(self):
+        pass
+
+    def spawn_player(self):
+        pass
+
+
 class Game:
 
     def __init__(self):
         self.window = GameWindow(self)
         self.editor = Editor(self)
+        self.world = GameWorld()
 
         if (
             not self.window.width % SCALING and

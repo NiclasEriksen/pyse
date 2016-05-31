@@ -183,6 +183,9 @@ class Player:
             self.sprite.image = self.game.textures["player_l"]
         elif direction > 0:
             self.sprite.image = self.game.textures["player_r"]
+        for v in self.shape.body.velocity:
+            if abs(v) > 1000.0:
+                print("VELOCITY OVER TRESHOOOOOOOOOLD!!!")
         x, y = self.phys_body.position
         self.x = int(round(x))
         self.sprite.y = self.y = int(round(y))

@@ -94,7 +94,7 @@ class CollideableObject:
         self.shape.group = 1
         self.game.phys_space.add(self.shape)
 
-    def draw(self):
+    def update(self):
         ox = self.game.offset_x
         self.sprite.x = int(self.x + ox)
 
@@ -235,11 +235,11 @@ class GameWorld(World):
         self.player = Player(self)
 
         logger.debug("Loading background and foreground sprites.")
-        self.bg_sprite = pyglet.sprite.Sprite(
-            self.textures["bg"],
-            x=0, y=0,
-            batch=self.batches["bg"], subpixel=False
-        )
+        # self.bg_sprite = pyglet.sprite.Sprite(
+        #     self.textures["bg"],
+        #     x=0, y=0,
+        #     batch=self.batches["bg"], subpixel=False
+        # )
         self.ground_sprite = pyglet.sprite.Sprite(
             self.textures["ground"],
             x=0, y=0,
@@ -249,13 +249,17 @@ class GameWorld(World):
         super().__init__()
         self.timer_enabled = False
         self.start_systems()
+        self.test = entities.Platform(self)
+        self.bg_test = entities.BackgroundImage(self)
 
     def spawn_player(self):
         pass
 
     def start_systems(self):
         self.add_system(systems.SpritePosSystem(self))
+        self.add_system(systems.ParallaxSystem(self))
         self.add_system(systems.SpriteBatchSystem(self))
+        self.add_system(systems.RenderSystem(self))
 
     def play_sound(self, name):
         s = self.sounds[name]
@@ -277,7 +281,20 @@ class GameWorld(World):
                 self.game_objects.remove(b)
                 break
 
+    def get_texture(self, name):
+        try:
+            return self.textures[name]
+        except KeyError:
+            logger.debug(
+                "No texture with identifier '{0}',\
+                 returning debug texture".format(
+                    name
+                )
+            )
+            return self.textures["debug"]
+
     def load_textures(self):
+        debug_img = pyglet.resource.image("resources/debug.png")
         player_img_l = (
             pyglet.resource.image('resources/dumb.png')
         )
@@ -302,6 +319,7 @@ class GameWorld(World):
         ).get_texture()
 
         self.textures = dict(
+            debug=debug_img,
             player_l=player_img_l,
             player_r=player_img_r,
             block=block_img,
@@ -347,7 +365,7 @@ class GameWorld(World):
         self.player.direction = d
 
     def on_mouse_press(self, x, y, btn, mod):
-        print(x, y, btn)
+        # print(x, y, btn)
         if btn == 1:
             self.add_block(
                 x // SCALING - self.offset_x, y // SCALING
@@ -369,14 +387,11 @@ class GameWorld(World):
 
     def update(self, dt):
         self.player.update(dt)
+        for o in self.game_objects:
+            o.update()
         self.offset_x = self.width / 2 - self.player.phys_body.position[0]
-        self.bg_sprite.x = int(-self.width + self.offset_x // 2)
         self.ground_sprite.x = int(self.offset_x)
         self.editor.update(dt)
-        # print(self.bg_sprite._subpixel, self.ground_sprite._subpixel)
-        # print(self.bg_sprite._vertex_list, self.ground_sprite._vertex_list)
-        # print(self.bg_sprite.y, self.ground_sprite.y)
-        # print(self.bg_sprite.height, self.ground_sprite.height)
         for i in range(30):
             self.phys_space.step(dt / 30)
 
@@ -448,8 +463,8 @@ if __name__ == "__main__":
 
     # Schedule the update function on the world to run every frame.
     pyglet.clock.schedule_interval(g.update, 1.0 / FPS)
+    # pyglet.clock.schedule_interval(g.render, 1.0 / FPS)
     pyglet.clock.schedule_interval(g.process, 1.0 / FPS)
-    pyglet.clock.schedule_interval(g.render, 1.0 / FPS)
 
     # Initialize pyglet app
     pyglet.app.run()

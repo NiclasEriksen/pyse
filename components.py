@@ -1,3 +1,4 @@
+import pyglet.sprite
 
 
 class Movable(object):
@@ -9,8 +10,15 @@ class Movable(object):
 class SpriteObject(object):
 
     def __init__(self, img, x, y, batch=None):
-        self.sprite = None
+        self.sprite = pyglet.sprite.Sprite(
+            img, x, y, subpixel=False
+        )
         self.batch = batch
+
+
+class ParallaxObject(object):
+    def __init__(self, ratio=2):
+        self.ratio = ratio
 
 
 class PhysicsBody(object):

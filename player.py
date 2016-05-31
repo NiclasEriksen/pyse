@@ -40,7 +40,7 @@ class Player:
         self.sprite = pyglet.sprite.Sprite(
             game.textures["player_r"],
             x=self.x, y=self.y,
-            batch=self.game.window.batches["player"], subpixel=False
+            batch=self.game.batches["player"], subpixel=False
         )
         # self.sprite.scale = SCALING
         self.direction = dict(
@@ -203,6 +203,5 @@ class Player:
         elif direction > 0:
             self.sprite.image = self.game.textures["player_r"]
         x, y = self.phys_body.position
-        # x, y = self.game.window.get_pixel_aligned_pos(x, y)
         self.x = int(round(x))
         self.sprite.y = self.y = int(round(y))

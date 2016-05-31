@@ -7,9 +7,9 @@ import pymunk
 from functions import *
 from collections import OrderedDict
 from tile import tile_img
-from entities import *
-from components import *
-from systems import *
+import entities
+import components
+import systems
 from player import Player
 from editor import Editor
 
@@ -91,7 +91,7 @@ class CollideableObject:
         self.sprite = pyglet.sprite.Sprite(
             self.game.textures["block"],
             x=self.x, y=self.y,
-            batch=self.game.window.batches["objects"], subpixel=False
+            batch=self.game.batches["objects"], subpixel=False
         )
 
         box_points = [
@@ -117,41 +117,52 @@ class CollideableObject:
 class GameWorld(World):
 
     def __init__(self):
-        pass
-
-    def spawn_player(self):
-        pass
-
-
-class Game:
-
-    def __init__(self):
         self.window = GameWindow(self)
-        self.editor = Editor(self)
-        self.world = GameWorld()
-
+        # self.window.on_mouse_motion = self.on_mouse_motion
+        self.window.on_mouse_press = self.on_mouse_press
+        # self.window.on_mouse_scroll = self.on_mouse_scroll
+        self.window.on_key_press = self.on_key_press
+        self.window.on_key_release = self.on_key_release
+        # self.window.on_resize = self.on_resize
         if (
             not self.window.width % SCALING and
             not self.window.height % SCALING
         ):
             self.width = self.window.width // SCALING
             self.height = self.window.height // SCALING
+            logger.info(
+                "Render resolution set to {0}x{1}.".format(
+                    self.width, self.height
+                )
+            )
         else:
-            logger.info("Resolution doesn't scale nicely.")
             self.width = (
                 (self.window.width - self.window.width % SCALING) // SCALING
             )
             self.height = (
                 (self.window.height - self.window.height % SCALING) // SCALING
             )
+            logger.info(
+                "Resolution doesn't scale nicely, resized to {0}x{1}.".format(
+                    self.width, self.height
+                )
+            )
         self.offset_x, self.offset_y = 0, 0
         self.map_width = MAP_WIDTH
 
-        self.load_sounds()
+        logger.info("Loading textures...")
         self.load_textures()
+        logger.info("Loading sounds...")
+        self.load_sounds()
 
-        # self.audio_sink = openal.audio.SoundSink(openal.Device())
-        # self.media_player = openal.audio.SoundSource()
+        logger.debug("Defining graphics batches.")
+        self.batches = OrderedDict()
+        self.batches["bg"] = pyglet.graphics.Batch()
+        self.batches["objects"] = pyglet.graphics.Batch()
+        self.batches["player"] = pyglet.graphics.Batch()
+        self.batches["fg"] = pyglet.graphics.Batch()
+
+        logger.info("Initializing media player.")
         self.media_player = pyglet.media.Player()
         self.sfx_player = pyglet.media.Player()
         self.sfx_player.eos_action = self.sfx_player.EOS_STOP
@@ -159,16 +170,16 @@ class Game:
             self.sounds["bgm01"].audio_format, None
         )
         self.bgm_looper.loop = True
+        logger.debug("Queuing background music...")
         self.bgm_looper.queue(self.sounds["bgm01"])
         self.media_player.queue(self.bgm_looper)
-        # self.media_player.play()
-        # import audioread
-        # snd = audioread.audio_open("bgm01.ogg")
-        # # snd = openal.loaders.load_file("bgm01.ogg")
-        # self.media_player.queue(snd)
-        # # self.media_player.eos_action = self.media_player.EOS_LOOP
-        # self.audio_sink.play(self.media_player)
+        self.media_player.play()    # Playing and pausing the media player
+        self.media_player.pause()   # in order to avoid delay on sfx play
 
+        logger.debug("Loading game editor.")
+        self.editor = Editor(self)
+
+        logger.info("Creating physics space.")
         self.phys_space = pymunk.Space()
         self.phys_space.add_collision_handler(
             1, 1, post_solve=self.collision_handler
@@ -176,6 +187,7 @@ class Game:
         # self.phys_space.damping = 0.0001
         self.phys_space.gravity = 0, -1000
 
+        logger.info("Spawning static game objects.")
         self.game_objects = []
         for i in range(self.width // 4, self.width - self.width // 4, 16):
             self.game_objects.append(
@@ -217,24 +229,33 @@ class Game:
             line.group = 1
 
         self.phys_space.add(static_lines)
+
+        logger.info("Spawning player.")
         self.player = Player(self)
 
+        logger.debug("Loading background and foreground sprites.")
         self.bg_sprite = pyglet.sprite.Sprite(
             self.textures["bg"],
             x=0, y=0,
-            batch=self.window.batches["bg"], subpixel=False
+            batch=self.batches["bg"], subpixel=False
         )
         self.ground_sprite = pyglet.sprite.Sprite(
             self.textures["ground"],
             x=0, y=0,
-            batch=self.window.batches["objects"], subpixel=False
+            batch=self.batches["objects"], subpixel=False
         )
-        # self.update(0)
+
+        super().__init__()
+        self.start_systems()
+
+    def spawn_player(self):
+        pass
+
+    def start_systems(self):
+        self.add_system(systems.SpritePosSystem(self))
 
     def play_sound(self, name):
         s = self.sounds[name]
-        # self.sfx_player.stop()
-        # self.sfx_player.clear()
         s.play()
 
     def collision_handler(self, space, arbiter):
@@ -276,7 +297,6 @@ class Game:
                 self.map_width + self.width, self.height
             ), pitch=(self.map_width + self.width) * 3
         ).get_texture()
-        print(block_img, ground_img.texture)
 
         self.textures = dict(
             player_l=player_img_l,
@@ -301,6 +321,49 @@ class Game:
             bgm01=bgm01
         )
 
+    def on_key_press(self, button, modifiers):
+        k = pyglet.window.key
+        d = self.player.direction
+        if button == k.SPACE:
+            d["up"] = True
+        elif button == k.ESCAPE:
+            pyglet.app.exit()
+        if button == k.A or button == k.LEFT:
+            d["left"] = True
+        if button == k.D or button == k.RIGHT:
+            d["right"] = True
+        if button == k.P:
+            if self.media_player.playing:
+                self.media_player.pause()
+            else:
+                self.media_player.play()
+        if button == k.PLUS:
+            self.offset_x += 10
+        if button == k.MINUS:
+            self.offset_x -= 10
+        self.player.direction = d
+
+    def on_mouse_press(self, x, y, btn, mod):
+        print(x, y, btn)
+        if btn == 1:
+            self.add_block(
+                x // SCALING - self.offset_x, y // SCALING
+            )
+        elif btn == 4:
+            self.remove_block(
+                x // SCALING - self.offset_x, y // SCALING
+            )
+
+    def on_key_release(self, button, modifiers):
+        k = pyglet.window.key
+        d = self.player.direction
+        if button == k.SPACE:
+            d["up"] = False
+        if button == k.A or button == k.LEFT:
+            d["left"] = False
+        if button == k.D or button == k.RIGHT:
+            d["right"] = False
+
     def update(self, dt):
         self.player.update(dt)
         self.offset_x = self.width / 2 - self.player.phys_body.position[0]
@@ -314,12 +377,15 @@ class Game:
         for i in range(30):
             self.phys_space.step(dt / 30)
 
+    def get_pixel_aligned_pos(self, x, y):
+        return int(x - (x % SCALING)), int(y - (y % SCALING))
+
     def render(self, dt):
         glClearColor(0.2, 0.2, 0.2, 1)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         for o in self.game_objects:
             o.draw()
-        for k, v in self.window.batches.items():
+        for k, v in self.batches.items():
             glEnable(GL_TEXTURE_2D)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
             glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
@@ -333,6 +399,7 @@ class GameWindow(pyglet.window.Window):  # Main game window
     def __init__(self, game):
         # Template for multisampling
         self.game = game
+        logger.debug("Setting gl configuration.")
         gl_template = pyglet.gl.Config(
             sample_buffers=1,
             samples=2,
@@ -340,11 +407,14 @@ class GameWindow(pyglet.window.Window):  # Main game window
             stencil_size=8
         )
         try:  # to enable multisampling
+            logger.debug("Multisampling enabled.")
             gl_config = screen.get_best_config(gl_template)
         except pyglet.window.NoSuchConfigException:
+            logger.warning("Failed to enable multisampling.")
             gl_template = pyglet.gl.Config(alpha_size=8)
             gl_config = screen.get_best_config(gl_template)
         gl_context = gl_config.create_context(None)
+        logger.info("Initializing main window.")
         super(GameWindow, self).__init__(
             context=gl_context,
             config=gl_config,
@@ -359,68 +429,18 @@ class GameWindow(pyglet.window.Window):  # Main game window
             self.width, self.height = RES_X, RES_Y
 
         # self.offset_x, self.offset_y = self.width // 2, self.height // 2
+        logger.debug("Setting GL flags for pixel scaling.")
         glScalef(4.0, 4.0, 4.0)
         glEnable(GL_TEXTURE_2D)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-        self.batches = OrderedDict()
-        self.batches["bg"] = pyglet.graphics.Batch()
-        self.batches["objects"] = pyglet.graphics.Batch()
-        self.batches["player"] = pyglet.graphics.Batch()
-        self.batches["fg"] = pyglet.graphics.Batch()
 
-    def get_pixel_aligned_pos(self, x, y):
-        # return x, y
-        return int(x - (x % SCALING)), int(y - (y % SCALING))
-
-    def on_key_press(self, button, modifiers):
-        k = pyglet.window.key
-        d = self.game.player.direction
-        if button == k.SPACE:
-            d["up"] = True
-        elif button == k.ESCAPE:
-            pyglet.app.exit()
-        if button == k.A or button == k.LEFT:
-            d["left"] = True
-        if button == k.D or button == k.RIGHT:
-            d["right"] = True
-        if button == k.P:
-            if self.game.media_player.playing:
-                self.game.media_player.pause()
-            else:
-                self.game.media_player.play()
-        if button == k.PLUS:
-            self.game.offset_x += 10
-        if button == k.MINUS:
-            self.game.offset_x -= 10
-        self.game.player.direction = d
-
-    def on_mouse_press(self, x, y, btn, mod):
-        print(x, y, btn)
-        if btn == 1:
-            self.game.add_block(
-                x // SCALING - self.game.offset_x, y // SCALING
-            )
-        elif btn == 4:
-            self.game.remove_block(
-                x // SCALING - self.game.offset_x, y // SCALING
-            )
-
-    def on_key_release(self, button, modifiers):
-        k = pyglet.window.key
-        d = self.game.player.direction
-        if button == k.SPACE:
-            d["up"] = False
-        if button == k.A or button == k.LEFT:
-            d["left"] = False
-        if button == k.D or button == k.RIGHT:
-            d["right"] = False
 
 if __name__ == "__main__":
     # Initialize world
-    g = Game()
+    g = GameWorld()
 
     # Schedule the update function on the world to run every frame.
     pyglet.clock.schedule_interval(g.update, 1.0 / FPS)

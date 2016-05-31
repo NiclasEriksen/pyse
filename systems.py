@@ -3,15 +3,15 @@ from entities import *
 from components import *
 
 
-class MoveSystem(System):
+class SpritePosSystem(System):
     def __init__(self, world):
         self.is_applicator = True
-        self.componenttypes = (Position, Velocity)
+        self.componenttypes = (SpriteObject, PhysicsBody)
 
     def process(self, world, componentsets):
         # print(*componentsets)
-        for pos, vel, *rest in componentsets:
-            pos.set(
-                pos.x + vel.x * world.dt,
-                pos.y + vel.y * world.dt
-            )
+        for s, p, *rest in componentsets:
+            if p.body:
+                x, y = p.body.position()
+                x, y = x + world.offset_x, y + world.offset_y
+                s.sprite.x, s.sprite.y = x, y

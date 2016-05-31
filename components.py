@@ -15,7 +15,7 @@ class SpriteObject(object):
 class PhysicsBody(object):
 
     def __init__(self):
-        pass
+        self.body = None
 
 
 class ActionBinding(object):

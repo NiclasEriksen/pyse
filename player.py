@@ -64,28 +64,9 @@ class Player:
             'body': None
         }
         self.well_grounded = False
-
-        # self.phys_body.position = (self.x + 0.001, self.y + 0.001)
-
-        # box_points = [
-        #     (-(w / 2), -(h / 2)),
-        #     (-(w / 2), h / 2),
-        #     (w / 2, h / 2),
-        #     (w / 2, -(h / 2))
-        # ]
-        box_points = [
-            (0, 0),
-            (0, h / 2),
-            (w, h / 2),
-            (w, 0)
-        ]
         self.jump_cd = 0.3
         self.jump_cd_timer = 0.
         self.shape = pymunk.Circle(self.phys_body, w / 2, (w / 2, w / 2))
-        # self.head_shape = pymunk.Poly(self.phys_body, box_points, (0, 0))
-        # self.head_shape.collision_type = 1
-        # self.head_shape.elasticity = 0.
-        # self.head_shape.group = 0
         self.shape.collision_type = 1
         # self.shape.friction = 0
         self.shape.elasticity = 0.

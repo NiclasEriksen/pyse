@@ -69,16 +69,6 @@ screen = display.get_default_screen()
 pyglet.clock.set_fps_limit(FPS)
 
 
-def cpfclamp(f, min_, max_):
-    """Clamp f between min and max"""
-    return min(max(f, min_), max_)
-
-
-def cpflerpconst(f1, f2, d):
-    """Linearly interpolate from f1 to f2 by no more than d."""
-    return f1 + cpfclamp(f2 - f1, -d, d)
-
-
 class CollideableObject:
 
     def __init__(self, game, x, y, w, h):
@@ -94,12 +84,7 @@ class CollideableObject:
             batch=self.game.batches["objects"], subpixel=False
         )
 
-        box_points = [
-            (self.x, self.y),
-            (self.x, self.y + h),
-            (self.x + w, self.y + h),
-            (self.x + w, self.y)
-        ]
+        box_points = self.game.shapes.rect(w, h, x=self.x, y=self.y)
         self.shape = pymunk.Poly(
             self.game.phys_space.static_body, box_points
         )
@@ -112,6 +97,21 @@ class CollideableObject:
     def draw(self):
         ox = self.game.offset_x
         self.sprite.x = int(self.x + ox)
+
+
+class ShapeGenerator:
+
+    def rect(self, w, h, x=0, y=0):
+        return [(x, y), (x, y + h), (x + w, y + h), (x + w, y)]
+
+    def trapese(self, bw, tw, h, x=0, y=0):
+        w = max(bw, tw)
+        return [
+            (x + (w - tw) // 2, y + h),
+            (x + w - ((w - tw) // 2), y + h),
+            (x + w - ((w - bw) // 2), y),
+            (x + (w - bw) // 2, y)
+        ]
 
 
 class GameWorld(World):
@@ -178,6 +178,7 @@ class GameWorld(World):
 
         logger.debug("Loading game editor.")
         self.editor = Editor(self)
+        self.shapes = ShapeGenerator()
 
         logger.info("Creating physics space.")
         self.phys_space = pymunk.Space()
@@ -246,6 +247,7 @@ class GameWorld(World):
         )
 
         super().__init__()
+        self.timer_enabled = False
         self.start_systems()
 
     def spawn_player(self):
@@ -253,6 +255,7 @@ class GameWorld(World):
 
     def start_systems(self):
         self.add_system(systems.SpritePosSystem(self))
+        self.add_system(systems.SpriteBatchSystem(self))
 
     def play_sound(self, name):
         s = self.sounds[name]
@@ -428,14 +431,15 @@ class GameWindow(pyglet.window.Window):  # Main game window
             )
             self.width, self.height = RES_X, RES_Y
 
-        # self.offset_x, self.offset_y = self.width // 2, self.height // 2
         logger.debug("Setting GL flags for pixel scaling.")
         glScalef(4.0, 4.0, 4.0)
+        # These have seemingly no effects and are just attempts at fixing
+        # the blurry texture that happens at random
         glEnable(GL_TEXTURE_2D)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 
 
 if __name__ == "__main__":
@@ -444,6 +448,7 @@ if __name__ == "__main__":
 
     # Schedule the update function on the world to run every frame.
     pyglet.clock.schedule_interval(g.update, 1.0 / FPS)
+    pyglet.clock.schedule_interval(g.process, 1.0 / FPS)
     pyglet.clock.schedule_interval(g.render, 1.0 / FPS)
 
     # Initialize pyglet app

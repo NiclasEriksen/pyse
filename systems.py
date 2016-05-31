@@ -15,3 +15,17 @@ class SpritePosSystem(System):
                 x, y = p.body.position()
                 x, y = x + world.offset_x, y + world.offset_y
                 s.sprite.x, s.sprite.y = x, y
+
+
+class SpriteBatchSystem(System):
+    def __init__(self, world):
+        self.is_applicator = True
+        self.componenttypes = (SpriteObject, )
+
+    def process(self, world, componentsets):
+        for s in componentsets:
+            if s.batch and not s.sprite.batch:
+                try:
+                    s.sprite.batch = world.batches[s.batch]
+                except KeyError:
+                    print("NO SUCH BATCH: {0}".format(s.batch))

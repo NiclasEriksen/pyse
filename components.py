@@ -8,8 +8,9 @@ class Movable(object):
 
 class SpriteObject(object):
 
-    def __init__(self, img, x, y):
+    def __init__(self, img, x, y, batch=None):
         self.sprite = None
+        self.batch = batch
 
 
 class PhysicsBody(object):

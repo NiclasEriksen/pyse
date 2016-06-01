@@ -23,8 +23,24 @@ class ParallaxObject(object):
 
 class PhysicsBody(object):
 
-    def __init__(self):
-        self.body = None
+    def __init__(self, shape):
+        self.active = False
+        self.shape = shape
+        # self.shape.collision_type = 1
+        self.shape.friction = 1.
+        self.shape.elasticity = 0
+        self.shape.group = 1
+
+
+class StaticPhysicsBody(object):
+
+    def __init__(self, shape, x, y):
+        self.x, self.y = x, y
+        self.shape = shape
+        # self.shape.collision_type = 1
+        self.shape.friction = 1.
+        self.shape.elasticity = 0
+        self.shape.group = 1
 
 
 class ActionBinding(object):

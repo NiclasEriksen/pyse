@@ -188,20 +188,21 @@ class GameWorld(World):
         # self.phys_space.damping = 0.0001
         self.phys_space.gravity = 0, -1000
 
+        logger.debug("Loading background and foreground sprites.")
+        self.ground_sprite = pyglet.sprite.Sprite(
+            self.textures["ground"],
+            x=0, y=0,
+            batch=self.batches["objects"], subpixel=False
+        )
+
+        super().__init__()
         logger.info("Spawning static game objects.")
-        self.game_objects = []
+
         for i in range(self.width // 4, self.width - self.width // 4, 16):
-            self.game_objects.append(
-                CollideableObject(
-                    self, i, self.height - 48, 16, 16
-                )
-            )
+                entities.Block(self, x=i, y=self.height - 64, w=16, h=16)
         for i in range(self.width // 4, self.width - self.width // 4, 16):
-            self.game_objects.append(
-                CollideableObject(
-                    self, i, self.height // 4, 16, 16
-                )
-            )
+                entities.Block(self, x=i, y=32, w=16, h=16)
+
         static_lines = [
             pymunk.Segment(
                 self.phys_space.static_body, (0, 15), (self.map_width, 15), 1
@@ -233,23 +234,8 @@ class GameWorld(World):
 
         logger.info("Spawning player.")
         self.player = Player(self)
-
-        logger.debug("Loading background and foreground sprites.")
-        # self.bg_sprite = pyglet.sprite.Sprite(
-        #     self.textures["bg"],
-        #     x=0, y=0,
-        #     batch=self.batches["bg"], subpixel=False
-        # )
-        self.ground_sprite = pyglet.sprite.Sprite(
-            self.textures["ground"],
-            x=0, y=0,
-            batch=self.batches["objects"], subpixel=False
-        )
-
-        super().__init__()
         self.timer_enabled = False
         self.start_systems()
-        self.test = entities.Platform(self)
         self.bg_test = entities.BackgroundImage(self)
 
     def spawn_player(self):
@@ -257,6 +243,7 @@ class GameWorld(World):
 
     def start_systems(self):
         self.add_system(systems.SpritePosSystem(self))
+        self.add_system(systems.StaticSpritePosSystem(self))
         self.add_system(systems.ParallaxSystem(self))
         self.add_system(systems.SpriteBatchSystem(self))
         self.add_system(systems.RenderSystem(self))
@@ -271,14 +258,15 @@ class GameWorld(World):
         return False
 
     def add_block(self, x, y, w=16, h=16):
-        b = CollideableObject(self, x, y, w, h)
-        self.game_objects.append(b)
+        entities.Block(self, x=x, y=y, w=w, h=h)
 
     def remove_block(self, x, y):
-        for b in self.game_objects:
+        blocks = self.get_components(components.StaticPhysicsBody)
+        for b in reversed(blocks):
             if b.shape.point_query((x, y)):
                 self.phys_space.remove(b.shape)
-                self.game_objects.remove(b)
+                e = self.get_entities(b)
+                self.delete_entities(e)
                 break
 
     def get_texture(self, name):
@@ -387,8 +375,6 @@ class GameWorld(World):
 
     def update(self, dt):
         self.player.update(dt)
-        for o in self.game_objects:
-            o.update()
         self.offset_x = self.width / 2 - self.player.phys_body.position[0]
         self.ground_sprite.x = int(self.offset_x)
         self.editor.update(dt)
@@ -401,8 +387,6 @@ class GameWorld(World):
     def render(self, dt):
         glClearColor(0.2, 0.2, 0.2, 1)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        for o in self.game_objects:
-            o.draw()
         for k, v in self.batches.items():
             glEnable(GL_TEXTURE_2D)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)

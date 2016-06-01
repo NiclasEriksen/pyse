@@ -1,19 +1,19 @@
-21:01:01,153 __main__ DEBUG Setting gl configuration.
-21:01:01,154 __main__ DEBUG Multisampling enabled.
-21:01:01,156 __main__ INFO Initializing main window.
-21:01:01,162 __main__ DEBUG Setting GL flags for pixel scaling.
-21:01:01,163 __main__ INFO Render resolution set to 320x180.
-21:01:01,163 __main__ INFO Loading textures...
-21:01:01,260 PIL.PngImagePlugin DEBUG STREAM b'IHDR' 16 13
-21:01:01,261 PIL.PngImagePlugin DEBUG STREAM b'IDAT' 41 127
-21:01:01,263 PIL.PngImagePlugin DEBUG STREAM b'IHDR' 16 13
-21:01:01,263 PIL.PngImagePlugin DEBUG STREAM b'IDAT' 41 102
-21:01:01,280 __main__ INFO Loading sounds...
-21:01:01,308 __main__ DEBUG Defining graphics batches.
-21:01:01,308 __main__ INFO Initializing media player.
-21:01:01,308 __main__ DEBUG Queuing background music...
-21:01:01,343 __main__ DEBUG Loading game editor.
-21:01:01,344 __main__ INFO Creating physics space.
-21:01:01,344 __main__ INFO Spawning static game objects.
-21:01:01,348 __main__ INFO Spawning player.
-21:01:01,349 __main__ DEBUG Loading background and foreground sprites.
+03:20:56,400 __main__ DEBUG Setting gl configuration.
+03:20:56,400 __main__ DEBUG Multisampling enabled.
+03:20:56,403 __main__ INFO Initializing main window.
+03:20:56,410 __main__ DEBUG Setting GL flags for pixel scaling.
+03:20:56,410 __main__ INFO Render resolution set to 320x180.
+03:20:56,410 __main__ INFO Loading textures...
+03:20:56,501 PIL.PngImagePlugin DEBUG STREAM b'IHDR' 16 13
+03:20:56,501 PIL.PngImagePlugin DEBUG STREAM b'IDAT' 41 127
+03:20:56,503 PIL.PngImagePlugin DEBUG STREAM b'IHDR' 16 13
+03:20:56,503 PIL.PngImagePlugin DEBUG STREAM b'IDAT' 41 102
+03:20:56,517 __main__ INFO Loading sounds...
+03:20:56,542 __main__ DEBUG Defining graphics batches.
+03:20:56,542 __main__ INFO Initializing media player.
+03:20:56,542 __main__ DEBUG Queuing background music...
+03:20:56,576 __main__ DEBUG Loading game editor.
+03:20:56,576 __main__ INFO Creating physics space.
+03:20:56,577 __main__ DEBUG Loading background and foreground sprites.
+03:20:56,578 __main__ INFO Spawning static game objects.
+03:20:56,583 __main__ INFO Spawning player.

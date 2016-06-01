@@ -12,10 +12,24 @@ class SpritePosSystem(System):
     def process(self, world, componentsets):
         # print(*componentsets)
         for s, p, *rest in componentsets:
-            if p.body:
-                x, y = p.body.position()
+            if p.shape:
+                x, y = p.shape.position()
                 x, y = x + world.offset_x, y + world.offset_y
                 s.sprite.x, s.sprite.y = x, y
+
+
+class StaticSpritePosSystem(System):
+    def __init__(self, world):
+        self.is_applicator = True
+        self.componenttypes = (SpriteObject, StaticPhysicsBody)
+
+    def process(self, world, componentsets):
+        # print(*componentsets)
+        for s, p, *rest in componentsets:
+            if p.shape:
+                x, y = p.x, p.y
+                x, y = x + world.offset_x, y + world.offset_y
+                s.sprite.x, s.sprite.y = int(x), int(y)
 
 
 class ParallaxSystem(System):
@@ -40,6 +54,7 @@ class SpriteBatchSystem(System):
                     s.sprite.batch = world.batches[s.batch]
                 except KeyError:
                     print("NO SUCH BATCH: {0}".format(s.batch))
+                    s.batch = None
 
 
 class RenderSystem(System):

@@ -49,9 +49,7 @@ class Player:
             up=False
         )
         w, h = self.sprite.width, self.sprite.height
-        # print("w:{0} h:{1}".format(w, h))
-        # self.sprite.width = 256
-        # self.sprite.height = 256
+
         mass = 5
         inertia = pymunk.inf
         self.phys_body = pymunk.Body(mass, inertia)

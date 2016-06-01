@@ -52,9 +52,22 @@ class SpriteBatchSystem(System):
             if s.batch and not s.sprite.batch:
                 try:
                     s.sprite.batch = world.batches[s.batch]
+                    world.log.debug(
+                        "Added sprite to batch '{0}'".format(s.batch)
+                    )
                 except KeyError:
-                    print("NO SUCH BATCH: {0}".format(s.batch))
+                    world.log.error("NO SUCH BATCH: {0}".format(s.batch))
                     s.batch = None
+
+
+class SoundEffectSystem(System):
+    def __init__(self, world):
+        self.is_applicator = False
+        self.componenttypes = (SFXObject, )
+
+    def process(self, world, componentsets):
+        for sfx, *rest in componentsets:
+            world.log.info(sfx)
 
 
 class RenderSystem(System):

@@ -33,6 +33,8 @@ logger.setLevel(logging.DEBUG)
 # GLOBAL VARIABLES
 ROOT = os.path.dirname(__file__)
 RES_PATH = os.path.join(ROOT, "resources")
+SFX_PATH = os.path.join(RES_PATH, "audio")
+TEX_PATH = os.path.join(RES_PATH, "textures")
 PAUSED = False
 FPS = 60.0               # Target frames per second
 SCALING = 4
@@ -117,6 +119,7 @@ class ShapeGenerator:
 class GameWorld(World):
 
     def __init__(self):
+        self.log = logger
         self.window = GameWindow(self)
         # self.window.on_mouse_motion = self.on_mouse_motion
         self.window.on_mouse_press = self.on_mouse_press
@@ -130,7 +133,7 @@ class GameWorld(World):
         ):
             self.width = self.window.width // SCALING
             self.height = self.window.height // SCALING
-            logger.info(
+            self.log.info(
                 "Render resolution set to {0}x{1}.".format(
                     self.width, self.height
                 )
@@ -142,7 +145,7 @@ class GameWorld(World):
             self.height = (
                 (self.window.height - self.window.height % SCALING) // SCALING
             )
-            logger.info(
+            self.log.info(
                 "Resolution doesn't scale nicely, resized to {0}x{1}.".format(
                     self.width, self.height
                 )
@@ -150,19 +153,19 @@ class GameWorld(World):
         self.offset_x, self.offset_y = 0, 0
         self.map_width = MAP_WIDTH
 
-        logger.info("Loading textures...")
+        self.log.info("Loading textures...")
         self.load_textures()
-        logger.info("Loading sounds...")
+        self.log.info("Loading sounds...")
         self.load_sounds()
 
-        logger.debug("Defining graphics batches.")
+        self.log.debug("Defining graphics batches.")
         self.batches = OrderedDict()
         self.batches["bg"] = pyglet.graphics.Batch()
         self.batches["objects"] = pyglet.graphics.Batch()
         self.batches["player"] = pyglet.graphics.Batch()
         self.batches["fg"] = pyglet.graphics.Batch()
 
-        logger.info("Initializing media player.")
+        self.log.info("Initializing media player.")
         self.media_player = pyglet.media.Player()
         self.sfx_player = pyglet.media.Player()
         self.sfx_player.eos_action = self.sfx_player.EOS_STOP
@@ -170,17 +173,17 @@ class GameWorld(World):
             self.sounds["bgm01"].audio_format, None
         )
         self.bgm_looper.loop = True
-        logger.debug("Queuing background music...")
+        self.log.debug("Queuing background music...")
         self.bgm_looper.queue(self.sounds["bgm01"])
         self.media_player.queue(self.bgm_looper)
         self.media_player.play()    # Playing and pausing the media player
         self.media_player.pause()   # in order to avoid delay on sfx play
 
-        logger.debug("Loading game editor.")
+        self.log.debug("Loading game editor.")
         self.editor = Editor(self)
         self.shapes = ShapeGenerator()
 
-        logger.info("Creating physics space.")
+        self.log.info("Creating physics space.")
         self.phys_space = pymunk.Space()
         self.phys_space.add_collision_handler(
             1, 1, post_solve=self.collision_handler
@@ -188,7 +191,7 @@ class GameWorld(World):
         # self.phys_space.damping = 0.0001
         self.phys_space.gravity = 0, -1000
 
-        logger.debug("Loading background and foreground sprites.")
+        self.log.debug("Loading background and foreground sprites.")
         self.ground_sprite = pyglet.sprite.Sprite(
             self.textures["ground"],
             x=0, y=0,
@@ -196,7 +199,7 @@ class GameWorld(World):
         )
 
         super().__init__()
-        logger.info("Spawning static game objects.")
+        self.log.info("Spawning static game objects.")
 
         for i in range(self.width // 4, self.width - self.width // 4, 16):
                 entities.Block(self, x=i, y=self.height - 64, w=16, h=16)
@@ -232,7 +235,7 @@ class GameWorld(World):
 
         self.phys_space.add(static_lines)
 
-        logger.info("Spawning player.")
+        self.log.info("Spawning player.")
         self.player = Player(self)
         self.timer_enabled = False
         self.start_systems()
@@ -246,6 +249,7 @@ class GameWorld(World):
         self.add_system(systems.StaticSpritePosSystem(self))
         self.add_system(systems.ParallaxSystem(self))
         self.add_system(systems.SpriteBatchSystem(self))
+        self.add_system(systems.SoundEffectSystem(self))
         self.add_system(systems.RenderSystem(self))
 
     def play_sound(self, name):
@@ -258,6 +262,7 @@ class GameWorld(World):
         return False
 
     def add_block(self, x, y, w=16, h=16):
+        # entities.Orb(self, x=x, y=y)
         entities.Block(self, x=x, y=y, w=w, h=h)
 
     def remove_block(self, x, y):
@@ -273,7 +278,7 @@ class GameWorld(World):
         try:
             return self.textures[name]
         except KeyError:
-            logger.debug(
+            self.log.debug(
                 "No texture with identifier '{0}',\
                  returning debug texture".format(
                     name
@@ -282,26 +287,34 @@ class GameWorld(World):
             return self.textures["debug"]
 
     def load_textures(self):
-        debug_img = pyglet.resource.image("resources/debug.png")
+        debug_img = pyglet.resource.image(
+            os.path.join(TEX_PATH, "debug.png")
+        )
         player_img_l = (
-            pyglet.resource.image('resources/dumb.png')
+            pyglet.resource.image(
+                os.path.join(TEX_PATH, "dumb.png")
+            )
         )
         player_img_r = (
-            pyglet.resource.image('resources/dumb_r.png')
+            pyglet.resource.image(
+                os.path.join(TEX_PATH, "dumb_r.png")
+            )
         )
         block_img = (
-            pyglet.resource.image('resources/block.png')
+            pyglet.resource.image(
+                os.path.join(TEX_PATH, "block.png")
+            )
         )
 
         ground_img = pyglet.image.ImageData(
             self.map_width - (self.map_width % 16), 16, 'RGB', tile_img(
-                "resources/ground_grass.png",
+                os.path.join(TEX_PATH, "ground_grass.png"),
                 self.map_width - (self.map_width % 16), 16
             ), pitch=(self.map_width - (self.map_width % 16)) * 3
         ).get_texture()
         bg_img = pyglet.image.ImageData(
             self.map_width + self.width, self.height, 'RGB', tile_img(
-                "resources/bg.png",
+                os.path.join(TEX_PATH, "bg.png"),
                 self.map_width + self.width, self.height
             ), pitch=(self.map_width + self.width) * 3
         ).get_texture()
@@ -316,11 +329,19 @@ class GameWorld(World):
         )
 
     def load_sounds(self):
-        jump1 = pyglet.resource.media("jump1.ogg", streaming=False)
-        jump2 = pyglet.resource.media("jump2.ogg", streaming=False)
-        jump3 = pyglet.resource.media("jump3.ogg", streaming=False)
-        dunk = pyglet.resource.media("dunk.ogg", streaming=False)
-        bgm01 = pyglet.resource.media("bgm01.ogg")
+        jump1 = pyglet.resource.media(
+            os.path.join(SFX_PATH, "jump1.ogg"), streaming=False
+        )
+        jump2 = pyglet.resource.media(
+            os.path.join(SFX_PATH, "jump2.ogg"), streaming=False
+        )
+        jump3 = pyglet.resource.media(
+            os.path.join(SFX_PATH, "jump3.ogg"), streaming=False
+        )
+        dunk = pyglet.resource.media(
+            os.path.join(SFX_PATH, "dunk.ogg"), streaming=False
+        )
+        bgm01 = pyglet.resource.media(os.path.join(SFX_PATH, "bgm01.ogg"))
 
         self.sounds = dict(
             jump1=jump1,
@@ -401,7 +422,7 @@ class GameWindow(pyglet.window.Window):  # Main game window
     def __init__(self, game):
         # Template for multisampling
         self.game = game
-        logger.debug("Setting gl configuration.")
+        self.game.log.debug("Setting gl configuration.")
         gl_template = pyglet.gl.Config(
             sample_buffers=1,
             samples=2,
@@ -409,14 +430,14 @@ class GameWindow(pyglet.window.Window):  # Main game window
             stencil_size=8
         )
         try:  # to enable multisampling
-            logger.debug("Multisampling enabled.")
+            self.game.log.debug("Multisampling enabled.")
             gl_config = screen.get_best_config(gl_template)
         except pyglet.window.NoSuchConfigException:
-            logger.warning("Failed to enable multisampling.")
+            self.game.log.warning("Failed to enable multisampling.")
             gl_template = pyglet.gl.Config(alpha_size=8)
             gl_config = screen.get_best_config(gl_template)
         gl_context = gl_config.create_context(None)
-        logger.info("Initializing main window.")
+        self.game.log.info("Initializing main window.")
         super(GameWindow, self).__init__(
             context=gl_context,
             config=gl_config,
@@ -430,7 +451,7 @@ class GameWindow(pyglet.window.Window):  # Main game window
             )
             self.width, self.height = RES_X, RES_Y
 
-        logger.debug("Setting GL flags for pixel scaling.")
+        self.game.log.debug("Setting GL flags for pixel scaling.")
         glScalef(4.0, 4.0, 4.0)
         # These have seemingly no effects and are just attempts at fixing
         # the blurry texture that happens at random

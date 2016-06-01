@@ -1,5 +1,5 @@
 from utils.ebs import Entity
-from pymunk import Poly
+from pymunk import Poly, Circle
 from components import *
 
 
@@ -39,6 +39,22 @@ class Block(StaticEntity):
         )
         sw = self.spriteobject.sprite.width
         ratio = w / sw
+        self.spriteobject.sprite.scale = ratio
+
+
+class Orb(StaticEntity):
+
+    def __init__(self, world, x=0, y=0, r=8):
+        x, y = int(x), int(y)
+        shape = Circle(
+            world.phys_space.static_body, r, (x + r, y + r)
+        )
+        super().__init__(world, shape, x=x, y=y)
+        self.spriteobject = SpriteObject(
+            world.get_texture("orb"), x, y, batch="objects"
+        )
+        sw = self.spriteobject.sprite.width
+        ratio = (r * 2) / sw
         self.spriteobject.sprite.scale = ratio
 
 

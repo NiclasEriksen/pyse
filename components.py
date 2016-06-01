@@ -52,6 +52,12 @@ class ActionBinding(object):
         pass
 
 
+class SFXObject(object):
+
+    def __init__(self, sound):
+        self.sound = sound
+
+
 class SoundEmitter(object):
 
     def __init__(self):

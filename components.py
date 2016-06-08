@@ -6,15 +6,79 @@ class Movable(object):
 
     def __init__(self):
         self.active = True
+        self.direction = "right"
+
+
+class JumpObject(object):
+
+    def __init__(self):
+        self.cd = 0.3
+        self.cd_timer = 0.
+
+
+class InputObject(object):
+
+    def __init__(self, input_type):
+        self.input_type = input_type
+
+
+class DirectionalSprite(object):
+
+    def __init__(self, world, name):
+        gt = world.get_texture
+        self.textures = dict(
+            left=gt("{0}_l".format(name)),
+            right=gt("{0}_r".format(name)),
+            up=gt("{0}_u".format(name)),
+            error=gt("debug")
+        )
+
+    def get(self, direction):
+        try:
+            return self.textures[direction]
+        except KeyError:
+            return self.textures["error"]
 
 
 class SpriteObject(object):
 
-    def __init__(self, img, x, y, batch=None):
+    def __init__(self, img, x, y, w=None, h=None, batch=None):
         self.sprite = pyglet.sprite.Sprite(
             img, x, y, subpixel=False
         )
+        hratio = 1
+        if w:
+            sw = self.sprite.width
+            hratio = w / sw
+        vratio = 1
+        if h:
+            sh = self.sprite.height
+            vratio = h / sh
+        self.sprite.scale = min(vratio, hratio)
         self.batch = batch
+
+
+class ButtonIcon(object):
+
+    def __init__(self, img, x, y, w=None, h=None, batch=None):
+        self.sprite = pyglet.sprite.Sprite(
+            img, x, y, batch=batch, subpixel=False
+        )
+        hratio = 1
+        if w:
+            sw = self.sprite.width
+            hratio = w / sw
+        vratio = 1
+        if h:
+            sh = self.sprite.height
+            vratio = h / sh
+        self.sprite.scale = min(vratio, hratio)
+
+
+class FloatingSprite(object):
+
+    def __init__(self, x, y):
+        self.x, self.y = x, y
 
 
 class ParallaxObject(object):
@@ -63,8 +127,34 @@ class ActionBinding(object):
         Binds input/event signals to functions.
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, action, params):
+        self.action = action
+        self.params = params
+
+    def get(self):
+        if self.params:
+            self.action(*self.params)
+        else:
+            self.action()
+
+
+class MouseControlled(object):
+    def __init__(self, area, action=None, btn="left"):
+        self.area = area
+        self.action = action
+        self.btn = btn
+
+
+class MouseListen(object):
+    def __init__(self, btn=None, event_type="click"):
+        self.btn = btn
+        self.event_type = event_type
+
+
+class MouseClicked(object):
+    def __init__(self, x, y, btn):
+        self.x, self.y, self.btn = x, y, btn
+        self.handled = False
 
 
 class SFXObject(object):

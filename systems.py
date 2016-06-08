@@ -18,6 +18,17 @@ class SpritePosSystem(System):
                 s.sprite.x, s.sprite.y = x, y
 
 
+class FloatingSpritePosSystem(System):
+    def __init__(self, world):
+        self.is_applicator = True
+        self.componenttypes = (SpriteObject, FloatingSprite)
+
+    def process(self, world, componentsets):
+        for s, f in componentsets:
+            x, y = f.x + world.offset_x, f.y + world.offset_y
+            s.sprite.x, s.sprite.y = int(x), int(y)
+
+
 class StaticSpritePosSystem(System):
     def __init__(self, world):
         self.is_applicator = True
@@ -32,6 +43,16 @@ class StaticSpritePosSystem(System):
                 s.sprite.x, s.sprite.y = int(x), int(y)
 
 
+class DirectionalSpriteSystem(System):
+    def __init__(self, world):
+        self.is_applicator = True
+        self.componenttypes = (SpriteObject, DirectionalSprite, Movable)
+
+    def process(self, world, componentsets):
+        for so, do, m in componentsets:
+            so.sprite.image = do.get(m.direction)
+
+
 class ParallaxSystem(System):
     def __init__(self, world):
         self.is_applicator = True
@@ -44,16 +65,18 @@ class ParallaxSystem(System):
 
 class SpriteBatchSystem(System):
     def __init__(self, world):
-        self.is_applicator = True
+        self.is_applicator = False
         self.componenttypes = (SpriteObject, )
 
     def process(self, world, componentsets):
-        for s, *rest in componentsets:
+        for s in componentsets:
             if s.batch and not s.sprite.batch:
                 try:
                     s.sprite.batch = world.batches[s.batch]
                     world.log.debug(
-                        "Added sprite to batch '{0}'".format(s.batch)
+                        "Added {0} sprite to batch '{1}'".format(
+                            s, s.batch
+                        )
                     )
                 except KeyError:
                     world.log.error("NO SUCH BATCH: {0}".format(s.batch))
@@ -77,6 +100,40 @@ class GameOffsetSystem(System):
 
     def process(self, world, componentsets):
         pass
+
+
+class MousePressSystem(System):
+    def __init__(self, world):
+        self.is_applicator = True
+        self.componenttypes = (MouseControlled, MouseListen)
+
+    def process(self, world, componentsets):
+        if world.mouse_click:
+            click = world.mouse_click
+            for mc, ml in componentsets:
+
+                if ml.btn == click.btn:
+                    if (
+                        click.x >= mc.area[0][0] and
+                        click.x <= mc.area[1][0] and
+                        click.y >= mc.area[0][1] and
+                        click.y <= mc.area[1][1]
+                    ):
+                        world.mouse_click = None
+                        mc.action.get()
+                        break
+            else:
+                world.mouse_click = None
+
+
+class InputMovementSystem(System):
+    def __init__(self, world):
+        self.is_applicator = True
+        self.componenttypes = (Movable, PhysicsBody, InputObject)
+
+    def process(self, world, componentsets):
+        for m, pb, i in componentsets:
+            pass
 
 
 class RenderSystem(System):

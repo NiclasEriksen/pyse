@@ -37,8 +37,6 @@ RES_PATH = os.path.join(ROOT, "resources")
 SFX_PATH = os.path.join(RES_PATH, "audio")
 TEX_PATH = os.path.join(RES_PATH, "textures")
 FPS = 60.0               # Target frames per second
-# print(RES_X / 8, RES_Y / 8)
-# print(RES_X % 8, RES_Y % 8)
 
 # Bullshit platformer globals
 PLAYER_VELOCITY = 100.
@@ -89,13 +87,15 @@ class GameWorld(World):
         self.log.debug("Registering ebs systems.")
         self.start_systems()
         self.window = GameWindow(self)
-        # self.window.on_mouse_motion = self.on_mouse_motion
+        self.window.on_mouse_motion = self.on_mouse_motion
         self.window.on_mouse_press = self.on_mouse_press
         # self.window.on_mouse_scroll = self.on_mouse_scroll
         self.window.on_key_press = self.on_key_press
         self.window.on_key_release = self.on_key_release
+        self.mouse_click = None
         # self.window.on_resize = self.on_resize
         s = load_cfg("Window")["scale"]
+        self.scale = s
         if (
             not self.window.width % s and
             not self.window.height % s
@@ -134,6 +134,8 @@ class GameWorld(World):
         self.batches["objects"] = pyglet.graphics.Batch()
         self.batches["player"] = pyglet.graphics.Batch()
         self.batches["fg"] = pyglet.graphics.Batch()
+        self.batches["ui_bg"] = pyglet.graphics.Batch()
+        self.batches["ui_fg"] = pyglet.graphics.Batch()
 
         self.log.info("Initializing media player.")
         self.media_player = pyglet.media.Player()
@@ -151,6 +153,7 @@ class GameWorld(World):
 
         self.log.debug("Loading game editor.")
         self.editor = Editor(self)
+
         self.shapes = ShapeGenerator()
 
         self.log.info("Creating physics space.")
@@ -161,7 +164,11 @@ class GameWorld(World):
         self.phys_space.gravity = 0, -(self.cfg["gravity"])
 
         self.log.debug("Loading background and foreground sprites.")
+        entities.BackgroundImage(self)
         entities.GroundBlock(self, x=0, y=0, w=self.width, h=16)
+        entities.ForegroundImage(self, 50, 16)
+        entities.ForegroundImage(self, 90, 48)
+        entities.ForegroundImage(self, 180, 48)
 
         self.log.info("Spawning static game objects.")
 
@@ -200,20 +207,21 @@ class GameWorld(World):
 
         self.phys_space.add(static_lines)
 
-        self.log.info("Spawning player.")
+        self.log.info("Spawning player entity.")
         self.player = Player(self)
         entities.Player(self, x=32, y=80)
         self.timer_enabled = False
-        self.log.debug("Setting background image.")
-        entities.BackgroundImage(self)
 
     def spawn_player(self):
         pass
 
     def start_systems(self):
+        self.add_system(systems.MousePressSystem(self))
         self.add_system(systems.SpritePosSystem(self))
+        self.add_system(systems.FloatingSpritePosSystem(self))
         self.add_system(systems.StaticSpritePosSystem(self))
         self.add_system(systems.ParallaxSystem(self))
+        self.add_system(systems.DirectionalSpriteSystem(self))
         self.add_system(systems.SpriteBatchSystem(self))
         self.add_system(systems.SoundEffectSystem(self))
         self.add_system(systems.RenderSystem(self))
@@ -231,6 +239,9 @@ class GameWorld(World):
         # entities.Orb(self, x=x, y=y)
         entities.Block(self, x=x, y=y, w=w, h=h)
 
+    def add_bush(self, x, y):
+        entities.ForegroundImage(self, x, y)
+
     def remove_block(self, x, y):
         blocks = self.get_components(components.StaticPhysicsBody)
         for b in reversed(blocks):
@@ -245,8 +256,8 @@ class GameWorld(World):
             return self.textures[name]
         except KeyError:
             self.log.debug(
-                "No texture with identifier '{0}',\
-                 returning debug texture".format(
+                "No texture with identifier '{0}', \
+returning debug texture".format(
                     name
                 )
             )
@@ -285,13 +296,20 @@ class GameWorld(World):
             ), pitch=(self.map_width + self.width) * 3
         ).get_texture()
 
+        tree_img = (
+            pyglet.resource.image(
+                os.path.join(TEX_PATH, "tree_m.png")
+            )
+        )
+
         self.textures = dict(
             debug=debug_img,
             player_l=player_img_l,
             player_r=player_img_r,
             block=block_img,
             bg=bg_img,
-            ground=ground_img
+            ground=ground_img,
+            tree_m=tree_img
         )
 
     def load_sounds(self):
@@ -339,17 +357,33 @@ class GameWorld(World):
             self.offset_x -= 10
         self.player.direction = d
 
+        # Editor keys
+        if button == k._1:
+            self.add_block(
+                self.mouse_x - self.offset_x, self.mouse_y
+            )
+        if button == k._2:
+            entities.ForegroundImage(
+                self, self.mouse_x - self.offset_x, self.mouse_y
+            )
+
     def on_mouse_press(self, x, y, btn, mod):
         # print(x, y, btn)
-        s = load_cfg("Window")["scale"]
+        s = self.scale
         if btn == 1:
-            self.add_block(
-                x // s - self.offset_x, y // s
+            self.mouse_click = components.MouseClicked(
+                *self.get_gamepos(x, y), "left"
             )
+            # self.add_block(
+            #     x // s - self.offset_x, y // s
+            # )
         elif btn == 4:
             self.remove_block(
                 x // s - self.offset_x, y // s
             )
+
+    def on_mouse_motion(self, x, y, dx, dy):
+        self.mouse_x, self.mouse_y = self.get_gamepos(x, y)
 
     def on_key_release(self, button, modifiers):
         k = pyglet.window.key
@@ -371,6 +405,9 @@ class GameWorld(World):
 
     def get_pixel_aligned_pos(self, x, y):
         return int(x - (x % SCALING)), int(y - (y % SCALING))
+
+    def get_gamepos(self, x, y):
+        return int(x / self.scale), int(y / self.scale)
 
     def render(self, dt):
         glClearColor(0.2, 0.2, 0.2, 1)

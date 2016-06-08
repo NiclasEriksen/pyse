@@ -1,50 +1,61 @@
-15:34:37,639 __main__ DEBUG Registering ebs systems.
-15:34:37,640 __main__ DEBUG Setting gl configuration.
-15:34:37,640 __main__ DEBUG Multisampling enabled.
-15:34:37,642 __main__ INFO Initializing main window.
-15:34:37,648 __main__ INFO Applying window settings.
-15:34:37,649 __main__ DEBUG Setting GL flags for pixel scaling.
-15:34:37,649 __main__ INFO Render resolution set to 360x225.
-15:34:37,649 __main__ INFO Loading textures...
-15:34:37,742 PIL.PngImagePlugin DEBUG STREAM b'IHDR' 16 13
-15:34:37,743 PIL.PngImagePlugin DEBUG STREAM b'IDAT' 41 127
-15:34:37,744 PIL.PngImagePlugin DEBUG STREAM b'IHDR' 16 13
-15:34:37,744 PIL.PngImagePlugin DEBUG STREAM b'IDAT' 41 102
-15:34:37,758 __main__ INFO Loading sounds...
-15:34:37,783 __main__ DEBUG Defining graphics batches.
-15:34:37,783 __main__ INFO Initializing media player.
-15:34:37,783 __main__ DEBUG Queuing background music...
-15:34:37,821 __main__ DEBUG Loading game editor.
-15:34:37,821 __main__ INFO Creating physics space.
-15:34:37,821 __main__ DEBUG Loading background and foreground sprites.
-15:34:37,823 __main__ INFO Spawning static game objects.
-15:34:37,828 __main__ INFO Creating outer boundaries for game area.
-15:34:37,828 __main__ INFO Spawning player.
-15:34:37,829 __main__ DEBUG No texture with identifier 'player',                 returning debug texture
-15:34:37,829 __main__ DEBUG Setting background image.
-15:34:37,853 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,853 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,854 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,854 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,854 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,855 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,855 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,855 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,855 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,855 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,856 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,856 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,856 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,856 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,856 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,856 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,857 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,857 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,857 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,857 __main__ DEBUG Added sprite to batch 'bg'
-15:34:37,857 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,857 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,858 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,858 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,858 __main__ DEBUG Added sprite to batch 'objects'
-15:34:37,858 __main__ DEBUG Added sprite to batch 'objects'
+01:15:52,925 __main__ DEBUG Registering ebs systems.
+01:15:52,925 __main__ DEBUG Setting gl configuration.
+01:15:52,925 __main__ DEBUG Multisampling enabled.
+01:15:52,928 __main__ INFO Initializing main window.
+01:15:52,934 __main__ INFO Applying window settings.
+01:15:52,937 __main__ DEBUG Setting GL flags for pixel scaling.
+01:15:52,937 __main__ INFO Render resolution set to 360x225.
+01:15:52,937 __main__ INFO Loading textures...
+01:15:53,32 PIL.PngImagePlugin DEBUG STREAM b'IHDR' 16 13
+01:15:53,32 PIL.PngImagePlugin DEBUG STREAM b'IDAT' 41 127
+01:15:53,33 PIL.PngImagePlugin DEBUG STREAM b'IHDR' 16 13
+01:15:53,33 PIL.PngImagePlugin DEBUG STREAM b'IDAT' 41 102
+01:15:53,49 __main__ INFO Loading sounds...
+01:15:53,74 __main__ DEBUG Defining graphics batches.
+01:15:53,74 __main__ INFO Initializing media player.
+01:15:53,75 __main__ DEBUG Queuing background music...
+01:15:53,112 __main__ DEBUG Loading game editor.
+01:15:53,114 __main__ INFO Creating physics space.
+01:15:53,114 __main__ DEBUG Loading background and foreground sprites.
+01:15:53,115 __main__ INFO Spawning static game objects.
+01:15:53,120 __main__ INFO Creating outer boundaries for game area.
+01:15:53,120 __main__ INFO Spawning player entity.
+01:15:53,121 __main__ DEBUG No texture with identifier 'player', returning debug texture
+01:15:53,121 __main__ DEBUG No texture with identifier 'player_u', returning debug texture
+01:15:53,148 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452bb320> sprite to batch 'objects'
+01:15:53,148 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452b39e8> sprite to batch 'objects'
+01:15:53,149 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452bbb70> sprite to batch 'objects'
+01:15:53,149 __main__ DEBUG Added <components.SpriteObject object at 0x7f244607cdd8> sprite to batch 'objects'
+01:15:53,150 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452b7e80> sprite to batch 'objects'
+01:15:53,150 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452bbfd0> sprite to batch 'objects'
+01:15:53,150 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452b3588> sprite to batch 'objects'
+01:15:53,151 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452bbda0> sprite to batch 'objects'
+01:15:53,151 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452b7c50> sprite to batch 'objects'
+01:15:53,152 __main__ DEBUG Added <components.SpriteObject object at 0x7f244607c320> sprite to batch 'objects'
+01:15:53,152 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452b75c0> sprite to batch 'objects'
+01:15:53,152 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452b3358> sprite to batch 'objects'
+01:15:53,153 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452b70b8> sprite to batch 'objects'
+01:15:53,153 __main__ DEBUG Added <components.SpriteObject object at 0x7f2446073fd0> sprite to batch 'bg'
+01:15:53,154 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452bb0f0> sprite to batch 'objects'
+01:15:53,154 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452b3e48> sprite to batch 'objects'
+01:15:53,154 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452b3128> sprite to batch 'objects'
+01:15:53,154 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452b37b8> sprite to batch 'objects'
+01:15:53,155 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452c27f0> sprite to batch 'player'
+01:15:53,155 __main__ DEBUG Added <components.SpriteObject object at 0x7f244607c710> sprite to batch 'fg'
+01:15:53,156 __main__ DEBUG Added <components.SpriteObject object at 0x7f244607cba8> sprite to batch 'objects'
+01:15:53,156 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452bb940> sprite to batch 'objects'
+01:15:53,156 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452b7390> sprite to batch 'objects'
+01:15:53,156 __main__ DEBUG Added <components.SpriteObject object at 0x7f244607c4e0> sprite to batch 'fg'
+01:15:53,157 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452b7a20> sprite to batch 'objects'
+01:15:53,157 __main__ DEBUG Added <components.SpriteObject object at 0x7f2446073a90> sprite to batch 'ui_bg'
+01:15:53,158 __main__ DEBUG Added <components.SpriteObject object at 0x7f244607c908> sprite to batch 'fg'
+01:15:53,158 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452bb550> sprite to batch 'objects'
+01:15:53,158 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452bb780> sprite to batch 'objects'
+01:15:53,158 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452b3c18> sprite to batch 'objects'
+01:15:53,158 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452b77f0> sprite to batch 'objects'
+01:15:53,159 __main__ DEBUG Added <components.SpriteObject object at 0x7f2446061c50> sprite to batch 'ui_bg'
+01:15:56,421 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452d00b8> sprite to batch 'fg'
+01:15:57,434 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452d0f28> sprite to batch 'objects'
+01:16:07,586 __main__ DEBUG Added <components.SpriteObject object at 0x7f24440be2b0> sprite to batch 'fg'
+01:16:08,84 __main__ DEBUG Added <components.SpriteObject object at 0x7f24440be668> sprite to batch 'objects'
+01:16:15,395 __main__ DEBUG Added <components.SpriteObject object at 0x7f24452d0f28> sprite to batch 'objects'

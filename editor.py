@@ -1,3 +1,4 @@
+from entities import EditorButton
 
 
 class Editor:
@@ -5,7 +6,17 @@ class Editor:
 
     def __init__(self, game):
         self.game = game
-        self.ui_objects = [InfoObject(None)]
+        self.ui_objects = []
+        EditorButton(
+            game, 10, 10,
+            self.game.add_block, (32, 42),
+            "block"
+        )
+        EditorButton(
+            game, 22, 10,
+            self.game.add_bush, [32, 42],
+            "tree_m"
+        )
 
     def show_context_for_obj(self, obj):
         """

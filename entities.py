@@ -8,17 +8,36 @@ class Player(Entity):
     def __init__(self, world, x=0, y=0):
         self.movable = Movable()
         self.spriteobject = SpriteObject(
-            world.get_texture("player"), x, y
+            world.get_texture("player"), x, y, batch="player"
         )
-        sw = self.spriteobject.sprite.width
-        ratio = 16 / sw
-        self.spriteobject.sprite.scale = ratio
+        self.directionalsprite = DirectionalSprite(world, "player")
         phys_body = Body(5, inf)
         phys_body.position = x, y
         shape = Circle(phys_body, 8, (8, 8))
         self.physicsbody = PhysicsBody(shape)
         world.phys_space.add(self.physicsbody.body, self.physicsbody.shape)
         self.groundingobject = GroundingObject()
+        self.jumpobject = JumpObject()
+        self.inputobject = InputObject("kb")
+
+
+class EditorButton(Entity):
+
+    def __init__(self, world, x, y, action, params, sprite):
+        self.spriteobject = SpriteObject(
+            world.get_texture("debug"), x, y, w=10, h=10, batch="ui_bg"
+        )
+        self.buttonicon = ButtonIcon(
+            world.get_texture(sprite),
+            x + 1, y + 1, w=8, h=8,
+            batch=world.batches["ui_fg"]
+        )
+        self.actionbinding = ActionBinding(action, params)
+        self.mouselisten = MouseListen(btn="left")
+        self.mousecontrolled = MouseControlled(
+            ((x, y), (x + 10, y + 10)),
+            action=self.actionbinding
+        )
 
 
 class StaticEntity(Entity):
@@ -47,11 +66,8 @@ class Block(StaticEntity):
         )
         super().__init__(world, shape, x=x, y=y)
         self.spriteobject = SpriteObject(
-            world.get_texture("block"), x, y, batch="objects"
+            world.get_texture("block"), x, y, w=w, h=h, batch="objects"
         )
-        sw = self.spriteobject.sprite.width
-        ratio = w / sw
-        self.spriteobject.sprite.scale = ratio
 
 
 class GroundBlock(StaticEntity):
@@ -90,3 +106,13 @@ class BackgroundImage(Entity):
             0, 0, batch="bg"
         )
         self.parallaxobject = ParallaxObject()
+
+
+class ForegroundImage(Entity):
+    def __init__(self, world, x, y):
+        self.spriteobject = SpriteObject(
+            world.get_texture("tree_m"),
+            x, y, batch="fg"
+        )
+        # self.parallaxobject = ParallaxObject()
+        self.floatingsprite = FloatingSprite(x, y)

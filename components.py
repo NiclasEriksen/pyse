@@ -1,4 +1,5 @@
 import pyglet.sprite
+import pymunk.vec2d
 
 
 class Movable(object):
@@ -26,10 +27,24 @@ class PhysicsBody(object):
     def __init__(self, shape):
         self.active = False
         self.shape = shape
+        self.body = shape.body
         # self.shape.collision_type = 1
         self.shape.friction = 1.
         self.shape.elasticity = 0
-        self.shape.group = 1
+        self.shape.group = 0
+
+
+class GroundingObject(object):
+
+    def __init__(self):
+        self.grounding = {
+            'normal': pymunk.vec2d.Vec2d.zero(),
+            'penetration': pymunk.vec2d.Vec2d.zero(),
+            'impulse': pymunk.vec2d.Vec2d.zero(),
+            'position': pymunk.vec2d.Vec2d.zero(),
+            'body': None
+        }
+        self.well_grounded = False
 
 
 class StaticPhysicsBody(object):

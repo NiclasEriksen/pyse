@@ -1,5 +1,5 @@
 from utils.ebs import Entity
-from pymunk import Poly, Circle
+from pymunk import Poly, Circle, Body, inf
 from components import *
 
 
@@ -10,6 +10,15 @@ class Player(Entity):
         self.spriteobject = SpriteObject(
             world.get_texture("player"), x, y
         )
+        sw = self.spriteobject.sprite.width
+        ratio = 16 / sw
+        self.spriteobject.sprite.scale = ratio
+        phys_body = Body(5, inf)
+        phys_body.position = x, y
+        shape = Circle(phys_body, 8, (8, 8))
+        self.physicsbody = PhysicsBody(shape)
+        world.phys_space.add(self.physicsbody.body, self.physicsbody.shape)
+        self.groundingobject = GroundingObject()
 
 
 class StaticEntity(Entity):

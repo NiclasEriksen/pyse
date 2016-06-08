@@ -202,6 +202,7 @@ class GameWorld(World):
 
         self.log.info("Spawning player.")
         self.player = Player(self)
+        entities.Player(self, x=32, y=80)
         self.timer_enabled = False
         self.log.debug("Setting background image.")
         entities.BackgroundImage(self)

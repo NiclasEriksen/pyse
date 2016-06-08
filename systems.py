@@ -13,7 +13,7 @@ class SpritePosSystem(System):
         # print(*componentsets)
         for s, p, *rest in componentsets:
             if p.shape:
-                x, y = p.shape.position()
+                x, y = p.shape.body.position
                 x, y = x + world.offset_x, y + world.offset_y
                 s.sprite.x, s.sprite.y = x, y
 
@@ -68,6 +68,15 @@ class SoundEffectSystem(System):
     def process(self, world, componentsets):
         for sfx, *rest in componentsets:
             world.log.info(sfx)
+
+
+class GameOffsetSystem(System):
+    def __init__(self, world):
+        self.is_applicator = True
+        self.componenttypes = (None, )
+
+    def process(self, world, componentsets):
+        pass
 
 
 class RenderSystem(System):

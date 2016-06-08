@@ -1,11 +1,12 @@
 import os
 import logging
+from collections import OrderedDict
 import pyglet
-from utils.ebs import World
 from pyglet.gl import *
 import pymunk
+from utils.ebs import World
 from functions import *
-from collections import OrderedDict
+from load_config import ConfigSectionMap as load_cfg
 from tile import tile_img
 import entities
 import components
@@ -35,11 +36,7 @@ ROOT = os.path.dirname(__file__)
 RES_PATH = os.path.join(ROOT, "resources")
 SFX_PATH = os.path.join(RES_PATH, "audio")
 TEX_PATH = os.path.join(RES_PATH, "textures")
-PAUSED = False
 FPS = 60.0               # Target frames per second
-SCALING = 4
-RES_X, RES_Y = 1280, 720
-MAP_WIDTH = 1500
 # print(RES_X / 8, RES_Y / 8)
 # print(RES_X % 8, RES_Y % 8)
 
@@ -51,9 +48,9 @@ PLAYER_GROUND_ACCEL = PLAYER_VELOCITY / PLAYER_GROUND_ACCEL_TIME
 PLAYER_AIR_ACCEL_TIME = 0.25
 PLAYER_AIR_ACCEL = PLAYER_VELOCITY / PLAYER_AIR_ACCEL_TIME
 
-JUMP_HEIGHT = (16.) * 2
-JUMP_BOOST_HEIGHT = (24.)
-JUMP_CUTOFF_VELOCITY = 100
+JUMP_HEIGHT = (24.) * 2
+JUMP_BOOST_HEIGHT = (42.)
+JUMP_CUTOFF_VELOCITY = 150
 FALL_VELOCITY = 350.
 
 JUMP_LENIENCY = 0.05
@@ -66,39 +63,6 @@ PLATFORM_SPEED = 1
 platform = pyglet.window.get_platform()
 display = platform.get_default_display()
 screen = display.get_default_screen()
-
-# Limit the frames per second #
-pyglet.clock.set_fps_limit(FPS)
-
-
-class CollideableObject:
-
-    def __init__(self, game, x, y, w, h):
-        self.game = game
-        self.x, self.y, self.width, self.height = (
-            int(x - w / 2),
-            int(y - h / 2),
-            w, h
-        )
-        self.sprite = pyglet.sprite.Sprite(
-            self.game.textures["block"],
-            x=self.x, y=self.y,
-            batch=self.game.batches["objects"], subpixel=False
-        )
-
-        box_points = self.game.shapes.rect(w, h, x=self.x, y=self.y)
-        self.shape = pymunk.Poly(
-            self.game.phys_space.static_body, box_points
-        )
-        # self.shape.collision_type = 1
-        self.shape.friction = 1.
-        self.shape.elasticity = 0
-        self.shape.group = 1
-        self.game.phys_space.add(self.shape)
-
-    def update(self):
-        ox = self.game.offset_x
-        self.sprite.x = int(self.x + ox)
 
 
 class ShapeGenerator:
@@ -119,7 +83,11 @@ class ShapeGenerator:
 class GameWorld(World):
 
     def __init__(self):
+        super().__init__()
         self.log = logger
+        self.cfg = load_cfg("Game")
+        self.log.debug("Registering ebs systems.")
+        self.start_systems()
         self.window = GameWindow(self)
         # self.window.on_mouse_motion = self.on_mouse_motion
         self.window.on_mouse_press = self.on_mouse_press
@@ -127,12 +95,13 @@ class GameWorld(World):
         self.window.on_key_press = self.on_key_press
         self.window.on_key_release = self.on_key_release
         # self.window.on_resize = self.on_resize
+        s = load_cfg("Window")["scale"]
         if (
-            not self.window.width % SCALING and
-            not self.window.height % SCALING
+            not self.window.width % s and
+            not self.window.height % s
         ):
-            self.width = self.window.width // SCALING
-            self.height = self.window.height // SCALING
+            self.width = self.window.width // s
+            self.height = self.window.height // s
             self.log.info(
                 "Render resolution set to {0}x{1}.".format(
                     self.width, self.height
@@ -140,10 +109,10 @@ class GameWorld(World):
             )
         else:
             self.width = (
-                (self.window.width - self.window.width % SCALING) // SCALING
+                (self.window.width - self.window.width % s) // s
             )
             self.height = (
-                (self.window.height - self.window.height % SCALING) // SCALING
+                (self.window.height - self.window.height % s) // s
             )
             self.log.info(
                 "Resolution doesn't scale nicely, resized to {0}x{1}.".format(
@@ -151,7 +120,8 @@ class GameWorld(World):
                 )
             )
         self.offset_x, self.offset_y = 0, 0
-        self.map_width = MAP_WIDTH
+        self.map_width = self.cfg["map_width"]
+        self.map_height = self.cfg["map_height"]
 
         self.log.info("Loading textures...")
         self.load_textures()
@@ -188,17 +158,11 @@ class GameWorld(World):
         self.phys_space.add_collision_handler(
             1, 1, post_solve=self.collision_handler
         )
-        # self.phys_space.damping = 0.0001
-        self.phys_space.gravity = 0, -1000
+        self.phys_space.gravity = 0, -(self.cfg["gravity"])
 
         self.log.debug("Loading background and foreground sprites.")
-        self.ground_sprite = pyglet.sprite.Sprite(
-            self.textures["ground"],
-            x=0, y=0,
-            batch=self.batches["objects"], subpixel=False
-        )
+        entities.GroundBlock(self, x=0, y=0, w=self.width, h=16)
 
-        super().__init__()
         self.log.info("Spawning static game objects.")
 
         for i in range(self.width // 4, self.width - self.width // 4, 16):
@@ -206,22 +170,23 @@ class GameWorld(World):
         for i in range(self.width // 4, self.width - self.width // 4, 16):
                 entities.Block(self, x=i, y=32, w=16, h=16)
 
+        self.log.info("Creating outer boundaries for game area.")
         static_lines = [
             pymunk.Segment(
                 self.phys_space.static_body, (0, 15), (self.map_width, 15), 1
             ),
             pymunk.Segment(
-                self.phys_space.static_body, (0, 0), (0, self.height), 1
+                self.phys_space.static_body, (0, 0), (0, self.map_height), 1
             ),
             pymunk.Segment(
                 self.phys_space.static_body,
                 (self.map_width, 0),
-                (self.map_width, self.height), 1
+                (self.map_width, self.map_height), 1
             ),
             pymunk.Segment(
                 self.phys_space.static_body,
-                (0, self.height),
-                (self.map_width, self.height), 1
+                (0, self.map_height),
+                (self.map_width, self.map_height), 1
             ),
             # pymunk.Segment(
             #     self.phys_space.static_body, (100, 400), (400, 600), 5
@@ -238,8 +203,8 @@ class GameWorld(World):
         self.log.info("Spawning player.")
         self.player = Player(self)
         self.timer_enabled = False
-        self.start_systems()
-        self.bg_test = entities.BackgroundImage(self)
+        self.log.debug("Setting background image.")
+        entities.BackgroundImage(self)
 
     def spawn_player(self):
         pass
@@ -375,13 +340,14 @@ class GameWorld(World):
 
     def on_mouse_press(self, x, y, btn, mod):
         # print(x, y, btn)
+        s = load_cfg("Window")["scale"]
         if btn == 1:
             self.add_block(
-                x // SCALING - self.offset_x, y // SCALING
+                x // s - self.offset_x, y // s
             )
         elif btn == 4:
             self.remove_block(
-                x // SCALING - self.offset_x, y // SCALING
+                x // s - self.offset_x, y // s
             )
 
     def on_key_release(self, button, modifiers):
@@ -397,7 +363,7 @@ class GameWorld(World):
     def update(self, dt):
         self.player.update(dt)
         self.offset_x = self.width / 2 - self.player.phys_body.position[0]
-        self.ground_sprite.x = int(self.offset_x)
+        # self.ground_sprite.x = int(self.offset_x)
         self.editor.update(dt)
         for i in range(30):
             self.phys_space.step(dt / 30)
@@ -423,6 +389,7 @@ class GameWindow(pyglet.window.Window):  # Main game window
         # Template for multisampling
         self.game = game
         self.game.log.debug("Setting gl configuration.")
+        self.cfg = load_cfg("Window")
         gl_template = pyglet.gl.Config(
             sample_buffers=1,
             samples=2,
@@ -442,17 +409,10 @@ class GameWindow(pyglet.window.Window):  # Main game window
             context=gl_context,
             config=gl_config,
             resizable=False,
-            vsync=True,
+            vsync=self.cfg["vsync"],
         )
-        if not self.fullscreen:
-            self.set_location(
-                (screen.width - RES_X) // 2,
-                (screen.height - RES_Y) // 2
-            )
-            self.width, self.height = RES_X, RES_Y
 
-        self.game.log.debug("Setting GL flags for pixel scaling.")
-        glScalef(4.0, 4.0, 4.0)
+        self.apply_settings()
         # These have seemingly no effects and are just attempts at fixing
         # the blurry texture that happens at random
         glEnable(GL_TEXTURE_2D)
@@ -461,6 +421,17 @@ class GameWindow(pyglet.window.Window):  # Main game window
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 
+    def apply_settings(self):
+        self.game.log.info("Applying window settings.")
+        if not self.fullscreen:
+            self.set_location(
+                (screen.width - self.cfg["width"]) // 2,
+                (screen.height - self.cfg["height"]) // 2
+            )
+            self.width, self.height = self.cfg["width"], self.cfg["height"]
+        self.game.log.debug("Setting GL flags for pixel scaling.")
+        s = float(self.cfg["scale"])
+        glScalef(s, s, s)
 
 if __name__ == "__main__":
     # Initialize world

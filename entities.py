@@ -5,8 +5,11 @@ from components import *
 
 class Player(Entity):
 
-    def __init__(self, world):
-        pass
+    def __init__(self, world, x=0, y=0):
+        self.movable = Movable()
+        self.spriteobject = SpriteObject(
+            world.get_texture("player"), x, y
+        )
 
 
 class StaticEntity(Entity):
@@ -40,6 +43,19 @@ class Block(StaticEntity):
         sw = self.spriteobject.sprite.width
         ratio = w / sw
         self.spriteobject.sprite.scale = ratio
+
+
+class GroundBlock(StaticEntity):
+
+    def __init__(self, world, x=0, y=0, w=16, h=16):
+        x, y = int(x), int(y)
+        shape = Poly(
+            world.phys_space.static_body, world.shapes.rect(w, h, x=x, y=y)
+        )
+        super().__init__(world, shape, x=x, y=y)
+        self.spriteobject = SpriteObject(
+            world.get_texture("ground"), x, y, batch="objects"
+        )
 
 
 class Orb(StaticEntity):

@@ -1,42 +1,49 @@
-13:52:05,84 __main__ DEBUG Setting gl configuration.
-13:52:05,84 __main__ DEBUG Multisampling enabled.
-13:52:05,87 __main__ INFO Initializing main window.
-13:52:05,96 __main__ DEBUG Setting GL flags for pixel scaling.
-13:52:05,96 __main__ INFO Render resolution set to 320x180.
-13:52:05,96 __main__ INFO Loading textures...
-13:52:05,195 PIL.PngImagePlugin DEBUG STREAM b'IHDR' 16 13
-13:52:05,195 PIL.PngImagePlugin DEBUG STREAM b'IDAT' 41 127
-13:52:05,198 PIL.PngImagePlugin DEBUG STREAM b'IHDR' 16 13
-13:52:05,198 PIL.PngImagePlugin DEBUG STREAM b'IDAT' 41 102
-13:52:05,214 __main__ INFO Loading sounds...
-13:52:05,241 __main__ DEBUG Defining graphics batches.
-13:52:05,241 __main__ INFO Initializing media player.
-13:52:05,242 __main__ DEBUG Queuing background music...
-13:52:05,274 __main__ DEBUG Loading game editor.
-13:52:05,274 __main__ INFO Creating physics space.
-13:52:05,274 __main__ DEBUG Loading background and foreground sprites.
-13:52:05,275 __main__ INFO Spawning static game objects.
-13:52:05,280 __main__ INFO Spawning player.
-13:52:05,299 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,299 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,300 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,300 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,300 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,300 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,301 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,301 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,301 __main__ DEBUG Added sprite to batch 'bg'
-13:52:05,301 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,302 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,302 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,302 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,302 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,302 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,302 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,302 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,303 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,303 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,303 __main__ DEBUG Added sprite to batch 'objects'
-13:52:05,303 __main__ DEBUG Added sprite to batch 'objects'
-13:52:06,10 __main__ DEBUG Added sprite to batch 'objects'
-13:52:06,434 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,233 __main__ DEBUG Registering ebs systems.
+15:11:40,233 __main__ DEBUG Setting gl configuration.
+15:11:40,234 __main__ DEBUG Multisampling enabled.
+15:11:40,236 __main__ INFO Initializing main window.
+15:11:40,242 __main__ INFO Applying window settings.
+15:11:40,242 __main__ DEBUG Setting GL flags for pixel scaling.
+15:11:40,243 __main__ INFO Render resolution set to 360x225.
+15:11:40,243 __main__ INFO Loading textures...
+15:11:40,346 PIL.PngImagePlugin DEBUG STREAM b'IHDR' 16 13
+15:11:40,346 PIL.PngImagePlugin DEBUG STREAM b'IDAT' 41 127
+15:11:40,347 PIL.PngImagePlugin DEBUG STREAM b'IHDR' 16 13
+15:11:40,347 PIL.PngImagePlugin DEBUG STREAM b'IDAT' 41 102
+15:11:40,359 __main__ INFO Loading sounds...
+15:11:40,385 __main__ DEBUG Defining graphics batches.
+15:11:40,385 __main__ INFO Initializing media player.
+15:11:40,385 __main__ DEBUG Queuing background music...
+15:11:40,419 __main__ DEBUG Loading game editor.
+15:11:40,419 __main__ INFO Creating physics space.
+15:11:40,420 __main__ DEBUG Loading background and foreground sprites.
+15:11:40,421 __main__ INFO Spawning static game objects.
+15:11:40,425 __main__ INFO Creating outer boundaries for game area.
+15:11:40,426 __main__ INFO Spawning player.
+15:11:40,426 __main__ DEBUG Setting background image.
+15:11:40,445 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,446 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,446 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,446 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,448 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,448 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,449 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,449 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,450 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,450 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,450 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,451 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,451 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,451 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,451 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,451 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,451 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,452 __main__ DEBUG Added sprite to batch 'bg'
+15:11:40,452 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,452 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,452 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,453 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,453 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,453 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,453 __main__ DEBUG Added sprite to batch 'objects'
+15:11:40,453 __main__ DEBUG Added sprite to batch 'objects'

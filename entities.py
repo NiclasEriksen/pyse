@@ -59,14 +59,16 @@ class Platform(StaticEntity):
 
 class Block(StaticEntity):
 
-    def __init__(self, world, x=0, y=0, w=16, h=16):
-        x, y = int(x), int(y)
+    def __init__(self, world, x=0, y=0, w=16, h=16, sprite="block"):
+        # x, y = int(x), int(y)
+        x, y = int(x - w / 2), int(y - h / 2)
+        # print(x, y)
         shape = Poly(
             world.phys_space.static_body, world.shapes.rect(w, h, x=x, y=y)
         )
         super().__init__(world, shape, x=x, y=y)
         self.spriteobject = SpriteObject(
-            world.get_texture("block"), x, y, w=w, h=h, batch="objects"
+            world.get_texture(sprite), x, y, w=w, h=h, batch="objects"
         )
 
 
@@ -101,14 +103,29 @@ class Orb(StaticEntity):
 
 class InputListener(Entity):
 
-    def __init__(self, world, action, type="mouse", btn="left"):
+    def __init__(self, world, action, params=None, type="mouse", btn="left"):
         if type == "mouse":
             self.mousescreencontrolled = MouseScreenControlled(
-                action=action, btn=btn
+                action=action, params=params, btn=btn
             )
             self.mouselisten = MouseListen(btn=btn)
         elif type == "kb":
-            pass
+            self.keyboardcontrolled = KeyboardControlled(
+                action=action, params=params, btn=btn
+            )
+            self.keyboardlisten = KeyboardListen(btn=btn)
+
+
+class MouseBoundImage(Entity):
+
+    def __init__(self, world, sprite):
+        t = world.get_texture(sprite)
+        w, h = t.width, t.height
+        self.spriteobject = SpriteObject(
+            t,
+            int(world.mouse_x - w / 2), int(world.mouse_y - h / 2)
+        )
+        self.mouseboundobject = MouseBoundObject(offset=(w // 2, h // 2))
 
 
 class BackgroundImage(Entity):
@@ -121,9 +138,12 @@ class BackgroundImage(Entity):
 
 
 class ForegroundImage(Entity):
-    def __init__(self, world, x, y):
+    def __init__(self, world, x, y, sprite="debug"):
+        t = world.get_texture(sprite)
+        w, h = t.width, t.height
+        x, y = int(x - w / 2), int(y - h / 2)
         self.spriteobject = SpriteObject(
-            world.get_texture("tree_m"),
+            t,
             x, y, batch="fg"
         )
         # self.parallaxobject = ParallaxObject()

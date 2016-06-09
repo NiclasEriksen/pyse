@@ -148,8 +148,9 @@ class MouseControlled(object):
 
 
 class MouseScreenControlled(object):
-    def __init__(self, action=None, btn="left"):
+    def __init__(self, action=None, params=None, btn="left"):
         self.action = action
+        self.params = params
         self.btn = btn
 
 
@@ -159,10 +160,33 @@ class MouseListen(object):
         self.event_type = event_type
 
 
+class KeyboardListen(object):
+    def __init__(self, btn=None):
+        self.btn = btn
+
+
+class KeyboardControlled(object):
+    def __init__(self, action=None, params=None, btn=None):
+        self.action = action
+        self.params = params
+        self.btn = btn
+
+
 class MouseClicked(object):
     def __init__(self, x, y, btn):
         self.x, self.y, self.btn = x, y, btn
         self.handled = False
+
+
+class KeyPressed(object):
+    def __init__(self, btn):
+        self.btn = btn
+        self.handled = False
+
+
+class MouseBoundObject(object):
+    def __init__(self, offset=(0, 0)):
+        self.offset = offset
 
 
 class SFXObject(object):

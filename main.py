@@ -93,6 +93,7 @@ class GameWorld(World):
         self.window.on_key_press = self.on_key_press
         self.window.on_key_release = self.on_key_release
         self.mouse_click = None
+        self.key_press = None
         # self.window.on_resize = self.on_resize
         s = load_cfg("Window")["scale"]
         self.scale = s
@@ -119,6 +120,7 @@ class GameWorld(World):
                     self.width, self.height
                 )
             )
+        self.mouse_x, self.mouse_y = self.width // 2, self.height // 2
         self.offset_x, self.offset_y = 0, 0
         self.map_width = self.cfg["map_width"]
         self.map_height = self.cfg["map_height"]
@@ -166,16 +168,16 @@ class GameWorld(World):
         self.log.debug("Loading background and foreground sprites.")
         entities.BackgroundImage(self)
         entities.GroundBlock(self, x=0, y=0, w=self.width, h=16)
-        entities.ForegroundImage(self, 50, 16)
-        entities.ForegroundImage(self, 90, 48)
-        entities.ForegroundImage(self, 180, 48)
+        # entities.ForegroundImage(self, 50, 16)
+        # entities.ForegroundImage(self, 90, 48)
+        # ddentities.ForegroundImage(self, 180, 48)
 
         self.log.info("Spawning static game objects.")
 
         for i in range(self.width // 4, self.width - self.width // 4, 16):
                 entities.Block(self, x=i, y=self.height - 64, w=16, h=16)
         for i in range(self.width // 4, self.width - self.width // 4, 16):
-                entities.Block(self, x=i, y=32, w=16, h=16)
+                entities.Block(self, x=i, y=40, w=16, h=16)
 
         self.log.info("Creating outer boundaries for game area.")
         static_lines = [
@@ -218,12 +220,15 @@ class GameWorld(World):
     def start_systems(self):
         self.add_system(systems.MousePressAreaSystem(self))
         self.add_system(systems.MousePressSystem(self))
+        self.add_system(systems.KeyPressSystem(self))
         self.add_system(systems.SpritePosSystem(self))
+        self.add_system(systems.MouseBoundSpriteSystem(self))
         self.add_system(systems.FloatingSpritePosSystem(self))
         self.add_system(systems.StaticSpritePosSystem(self))
         self.add_system(systems.ParallaxSystem(self))
         self.add_system(systems.DirectionalSpriteSystem(self))
         self.add_system(systems.SpriteBatchSystem(self))
+        # self.add_system(systems.CleanupPhysicsSystem(self))
         self.add_system(systems.SoundEffectSystem(self))
         self.add_system(systems.RenderSystem(self))
 
@@ -276,18 +281,20 @@ returning debug texture".format(
         block_img = self.load_img("block.png")
         tree_img = self.load_img("tree_m.png")
         button_img = self.load_img("button.png")
+        wood_img = self.load_img("wood.png")
+        flower_img = self.load_img("flower.png")
         # Tiled using Pillow
-        ground_img = pyglet.image.ImageData(
-            self.map_width - (self.map_width % 16), 16, 'RGB', tile_img(
-                os.path.join(TEX_PATH, "ground_grass.png"),
-                self.map_width - (self.map_width % 16), 16
-            ), pitch=(self.map_width - (self.map_width % 16)) * 3
-        ).get_texture()
         bg_img = pyglet.image.ImageData(
             self.map_width + self.width, self.height, 'RGB', tile_img(
                 os.path.join(TEX_PATH, "bg.png"),
                 self.map_width + self.width, self.height
             ), pitch=(self.map_width + self.width) * 3
+        ).get_texture()
+        ground_img = pyglet.image.ImageData(
+            self.map_width - (self.map_width % 16), 16, 'RGB', tile_img(
+                os.path.join(TEX_PATH, "ground_grass.png"),
+                self.map_width - (self.map_width % 16), 16
+            ), pitch=(self.map_width - (self.map_width % 16)) * 3
         ).get_texture()
 
         self.textures = dict(
@@ -299,6 +306,8 @@ returning debug texture".format(
             ground=ground_img,
             tree_m=tree_img,
             button=button_img,
+            wood=wood_img,
+            flower=flower_img
         )
 
     def load_sounds(self):
@@ -327,6 +336,9 @@ returning debug texture".format(
     def on_key_press(self, button, modifiers):
         k = pyglet.window.key
         d = self.player.direction
+        self.key_press = components.KeyPressed(
+            pyglet.window.key.symbol_string(button)
+        )
         if button == k.SPACE:
             d["up"] = True
         elif button == k.ESCAPE:
@@ -347,29 +359,19 @@ returning debug texture".format(
         self.player.direction = d
 
         # Editor keys
-        if button == k._1:
-            self.add_block(
-                self.mouse_x - self.offset_x, self.mouse_y
-            )
-        if button == k._2:
-            entities.ForegroundImage(
-                self, self.mouse_x - self.offset_x, self.mouse_y
-            )
+        if button == k.Z:
+            self.editor.undo()
 
     def on_mouse_press(self, x, y, btn, mod):
         # print(x, y, btn)
         s = self.scale
         if btn == 1:
             self.mouse_click = components.MouseClicked(
-                *self.get_gamepos(x, y), "left"
+                self.mouse_x, self.mouse_y, "left"
             )
-            # self.editor.add_block()
-            # self.add_block(
-            #     x // s - self.offset_x, y // s
-            # )
         elif btn == 4:
             self.mouse_click = components.MouseClicked(
-                *self.get_gamepos(x, y), "right"
+                self.mouse_x, self.mouse_y, "right"
             )
             self.remove_block(
                 x // s - self.offset_x, y // s
@@ -377,6 +379,7 @@ returning debug texture".format(
 
     def on_mouse_motion(self, x, y, dx, dy):
         self.mouse_x, self.mouse_y = self.get_gamepos(x, y)
+        # print(self.mouse_x, self.mouse_y)
 
     def on_key_release(self, button, modifiers):
         k = pyglet.window.key
@@ -390,7 +393,7 @@ returning debug texture".format(
 
     def update(self, dt):
         self.player.update(dt)
-        self.offset_x = self.width / 2 - self.player.phys_body.position[0]
+        self.offset_x = round(self.width / 2 - self.player.phys_body.position[0])
         # self.ground_sprite.x = int(self.offset_x)
         for i in range(30):
             self.phys_space.step(dt / 30)
@@ -399,7 +402,7 @@ returning debug texture".format(
         return int(x - (x % SCALING)), int(y - (y % SCALING))
 
     def get_gamepos(self, x, y):
-        return int(x / self.scale), int(y / self.scale)
+        return round(x / self.scale), round(y / self.scale)
 
     def render(self, dt):
         glClearColor(0.2, 0.2, 0.2, 1)

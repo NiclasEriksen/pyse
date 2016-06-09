@@ -83,6 +83,33 @@ class SpriteBatchSystem(System):
                     s.batch = None
 
 
+class CleanupPhysicsSystem(System):
+    def __init__(self, world):
+        self.is_applicator = False
+        self.componenttypes = (PhysicsBody, StaticPhysicsBody)
+
+    def process(self, world, componentsets):
+        if not (
+            len(world.get_components(PhysicsBody)) ==
+            len(world.phys_space.bodies)
+        ):
+            body_checklist = [
+                b.body for b in world.get_components(PhysicsBody)
+            ]
+            body_checklist += [
+                b.body for b in world.get_components(StaticPhysicsBody)
+            ]
+            self.cleanup_bodies(world, body_checklist)
+
+    def cleanup_bodies(self, world, checklist):
+        for body in world.phys_space.bodies:
+            if body not in checklist:
+                for s in body.shapes:
+                    world.phys_space.remove(s)
+                world.phys_space.remove(body)
+                world.log.debug("Removed a physical body.")
+
+
 class SoundEffectSystem(System):
     def __init__(self, world):
         self.is_applicator = False
@@ -137,8 +164,42 @@ class MousePressSystem(System):
                 if not c.handled:
                     if ml.btn == c.btn:
                         world.log.debug("Calling on mouse press action.")
-                        msc.action()
+                        if msc.params:
+                            msc.action(msc.params)
+                        else:
+                            msc.action()
                         world.mouse_click.handled = True
+
+
+class KeyPressSystem(System):
+    def __init__(self, world):
+        self.is_applicator = True
+        self.componenttypes = (KeyboardListen, KeyboardControlled)
+
+    def process(self, world, componentsets):
+        if world.key_press:
+            k = world.key_press
+            for kl, kc in componentsets:
+                if not k.handled:
+                    if kl.btn == k.btn:
+                        world.log.debug("Calling on key press action.")
+                        if kc.params:
+                            kc.action(kc.params)
+                        else:
+                            kc.action()
+                        world.key_press.handled = True
+
+
+class MouseBoundSpriteSystem(System):
+    def __init__(self, world):
+        self.is_applicator = True
+        self.componenttypes = (SpriteObject, MouseBoundObject)
+
+    def process(self, world, componentsets):
+        for s, mb in componentsets:
+            # print(world.mouse_x)
+            s.sprite.x = round(world.mouse_x - mb.offset[0])
+            s.sprite.y = round(world.mouse_y - mb.offset[1])
 
 
 class InputMovementSystem(System):

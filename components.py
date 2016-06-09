@@ -133,14 +133,22 @@ class ActionBinding(object):
 
     def get(self):
         if self.params:
-            self.action(*self.params)
+            # print("Calling with params {0}".format(self.params))
+            self.action(self.params)
         else:
+            # print("Calling without params")
             self.action()
 
 
 class MouseControlled(object):
     def __init__(self, area, action=None, btn="left"):
         self.area = area
+        self.action = action
+        self.btn = btn
+
+
+class MouseScreenControlled(object):
+    def __init__(self, action=None, btn="left"):
         self.action = action
         self.btn = btn
 

@@ -216,6 +216,7 @@ class GameWorld(World):
         pass
 
     def start_systems(self):
+        self.add_system(systems.MousePressAreaSystem(self))
         self.add_system(systems.MousePressSystem(self))
         self.add_system(systems.SpritePosSystem(self))
         self.add_system(systems.FloatingSpritePosSystem(self))
@@ -263,26 +264,19 @@ returning debug texture".format(
             )
             return self.textures["debug"]
 
-    def load_textures(self):
-        debug_img = pyglet.resource.image(
-            os.path.join(TEX_PATH, "debug.png")
-        )
-        player_img_l = (
-            pyglet.resource.image(
-                os.path.join(TEX_PATH, "dumb.png")
-            )
-        )
-        player_img_r = (
-            pyglet.resource.image(
-                os.path.join(TEX_PATH, "dumb_r.png")
-            )
-        )
-        block_img = (
-            pyglet.resource.image(
-                os.path.join(TEX_PATH, "block.png")
-            )
+    def load_img(self, filename):
+        return pyglet.resource.image(
+            os.path.join(TEX_PATH, filename)
         )
 
+    def load_textures(self):
+        debug_img = self.load_img("debug.png")
+        player_img_l = self.load_img("dumb.png")
+        player_img_r = self.load_img("dumb_r.png")
+        block_img = self.load_img("block.png")
+        tree_img = self.load_img("tree_m.png")
+        button_img = self.load_img("button.png")
+        # Tiled using Pillow
         ground_img = pyglet.image.ImageData(
             self.map_width - (self.map_width % 16), 16, 'RGB', tile_img(
                 os.path.join(TEX_PATH, "ground_grass.png"),
@@ -296,12 +290,6 @@ returning debug texture".format(
             ), pitch=(self.map_width + self.width) * 3
         ).get_texture()
 
-        tree_img = (
-            pyglet.resource.image(
-                os.path.join(TEX_PATH, "tree_m.png")
-            )
-        )
-
         self.textures = dict(
             debug=debug_img,
             player_l=player_img_l,
@@ -309,7 +297,8 @@ returning debug texture".format(
             block=block_img,
             bg=bg_img,
             ground=ground_img,
-            tree_m=tree_img
+            tree_m=tree_img,
+            button=button_img,
         )
 
     def load_sounds(self):
@@ -374,10 +363,14 @@ returning debug texture".format(
             self.mouse_click = components.MouseClicked(
                 *self.get_gamepos(x, y), "left"
             )
+            # self.editor.add_block()
             # self.add_block(
             #     x // s - self.offset_x, y // s
             # )
         elif btn == 4:
+            self.mouse_click = components.MouseClicked(
+                *self.get_gamepos(x, y), "right"
+            )
             self.remove_block(
                 x // s - self.offset_x, y // s
             )
@@ -399,7 +392,6 @@ returning debug texture".format(
         self.player.update(dt)
         self.offset_x = self.width / 2 - self.player.phys_body.position[0]
         # self.ground_sprite.x = int(self.offset_x)
-        self.editor.update(dt)
         for i in range(30):
             self.phys_space.step(dt / 30)
 

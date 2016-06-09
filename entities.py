@@ -25,7 +25,7 @@ class EditorButton(Entity):
 
     def __init__(self, world, x, y, action, params, sprite):
         self.spriteobject = SpriteObject(
-            world.get_texture("debug"), x, y, w=10, h=10, batch="ui_bg"
+            world.get_texture("button"), x, y, w=10, h=10, batch="ui_bg"
         )
         self.buttonicon = ButtonIcon(
             world.get_texture(sprite),
@@ -97,6 +97,18 @@ class Orb(StaticEntity):
         sw = self.spriteobject.sprite.width
         ratio = (r * 2) / sw
         self.spriteobject.sprite.scale = ratio
+
+
+class InputListener(Entity):
+
+    def __init__(self, world, action, type="mouse", btn="left"):
+        if type == "mouse":
+            self.mousescreencontrolled = MouseScreenControlled(
+                action=action, btn=btn
+            )
+            self.mouselisten = MouseListen(btn=btn)
+        elif type == "kb":
+            pass
 
 
 class BackgroundImage(Entity):

@@ -102,7 +102,7 @@ class GameOffsetSystem(System):
         pass
 
 
-class MousePressSystem(System):
+class MousePressAreaSystem(System):
     def __init__(self, world):
         self.is_applicator = True
         self.componenttypes = (MouseControlled, MouseListen)
@@ -110,20 +110,35 @@ class MousePressSystem(System):
     def process(self, world, componentsets):
         if world.mouse_click:
             click = world.mouse_click
-            for mc, ml in componentsets:
+            if not click.handled:
+                for mc, ml in componentsets:
+                    if ml.btn == click.btn:
+                        if (
+                            click.x >= mc.area[0][0] and
+                            click.x <= mc.area[1][0] and
+                            click.y >= mc.area[0][1] and
+                            click.y <= mc.area[1][1]
+                        ):
+                            world.log.debug("Button hit!")
+                            mc.action.get()
+                            world.mouse_click.handled = True
+                            break
 
-                if ml.btn == click.btn:
-                    if (
-                        click.x >= mc.area[0][0] and
-                        click.x <= mc.area[1][0] and
-                        click.y >= mc.area[0][1] and
-                        click.y <= mc.area[1][1]
-                    ):
-                        world.mouse_click = None
-                        mc.action.get()
-                        break
-            else:
-                world.mouse_click = None
+
+class MousePressSystem(System):
+    def __init__(self, world):
+        self.is_applicator = True
+        self.componenttypes = (MouseListen, MouseScreenControlled)
+
+    def process(self, world, componentsets):
+        if world.mouse_click:
+            c = world.mouse_click
+            for ml, msc in componentsets:
+                if not c.handled:
+                    if ml.btn == c.btn:
+                        world.log.debug("Calling on mouse press action.")
+                        msc.action()
+                        world.mouse_click.handled = True
 
 
 class InputMovementSystem(System):

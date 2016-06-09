@@ -1,22 +1,51 @@
-from entities import EditorButton
+from entities import EditorButton, Block, ForegroundImage, InputListener
+# from utils.ebs import Entity
 
 
 class Editor:
     """ A set of development tools that improves productivity. """
 
-    def __init__(self, game):
-        self.game = game
+    def __init__(self, world):
+        self.world = world
         self.ui_objects = []
+        self.selected_block = None
+        self.input_left = InputListener(world, self.add_block)
+        self.input_left = InputListener(
+            world, self.clear_selection, btn="right"
+        )
         EditorButton(
-            game, 10, 10,
-            self.game.add_block, (32, 42),
+            world, 10, 10,
+            self.select_block, "block",
             "block"
         )
         EditorButton(
-            game, 22, 10,
-            self.game.add_bush, [32, 42],
+            world, 22, 10,
+            self.select_block, "tree",
             "tree_m"
         )
+        self.blocks = dict(
+            block=Block,
+            tree=ForegroundImage
+        )
+
+    def clear_selection(self):
+        self.world.log.debug("Selection cleared.")
+        self.selected_block = None
+
+    def select_block(self, name):
+        print("block: {0} name: {0}".format(self.selected_block, name))
+        self.selected_block = str(name)
+
+    def add_block(self):
+        if self.selected_block:
+            # print(self.selected_block)
+            x, y = self.world.mouse_x, self.world.mouse_y
+            try:
+                b = self.blocks[self.selected_block]
+            except KeyError:
+                return False
+            else:
+                b(self.world, x=x, y=y)
 
     def show_context_for_obj(self, obj):
         """
@@ -40,15 +69,6 @@ class Editor:
     def handle_keys(self, btn, mod):
         """ Takes pyglet style button/modifier flags. """
         pass
-
-    def update(self, dt):
-        for o in self.ui_objects:
-            o.update(dt)
-
-    def render(self, dt):
-        for o in self.ui_objects:
-            if not o.batch:
-                o.draw()
 
 
 class UIObject:

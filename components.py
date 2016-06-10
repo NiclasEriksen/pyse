@@ -1,5 +1,6 @@
 import pyglet.sprite
 import pymunk.vec2d
+from load_config import ConfigSectionMap as load_cfg
 
 
 class Movable(object):
@@ -20,6 +21,9 @@ class InputObject(object):
 
     def __init__(self, input_type):
         self.input_type = input_type
+        if input_type == "kb":
+            self.mapping = load_cfg("KeyboardMap")
+            # print(self.mapping)
 
 
 class DirectionalSprite(object):

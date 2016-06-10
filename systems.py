@@ -1,5 +1,6 @@
 from utils.ebs import System
 from pyglet.gl import *
+from pyglet.window.key import symbol_string
 from entities import *
 from components import *
 
@@ -50,7 +51,8 @@ class DirectionalSpriteSystem(System):
 
     def process(self, world, componentsets):
         for so, do, m in componentsets:
-            so.sprite.image = do.get(m.direction)
+            if m.direction:
+                so.sprite.image = do.get(m.direction)
 
 
 class ParallaxSystem(System):
@@ -188,6 +190,32 @@ class KeyPressSystem(System):
                         else:
                             kc.action()
                         world.key_press.handled = True
+
+
+class ControllerMovementHandlig(System):
+
+    def __init__(self, world):
+        self.is_applicator = True
+        self.componenttypes = (InputObject, Movable)
+
+    def process(self, world, componentsets):
+        ks = world.kb_state
+        # print(ks)
+        for io, mv in componentsets:
+            found = False
+            for d in ["left", "right", "up", "down"]:
+                k = io.mapping[d]
+                for key, state in ks.items():
+                    if state:
+                        if symbol_string(int(key)) == k:
+                            mv.direction = d
+                            found = True
+                            break
+                if found:
+                    break
+            else:
+                mv.direction = None
+            # print(mv.direction)
 
 
 class MouseBoundSpriteSystem(System):

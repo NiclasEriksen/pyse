@@ -24,6 +24,9 @@ class Editor:
         InputListener(
             world, self.select_block, params="tree_m", type="kb", btn="_3"
         )
+        InputListener(
+            world, self.select_block, params="flower", type="kb", btn="_4"
+        )
         EditorButton(
             world, 10, 10,
             self.select_block, "block",

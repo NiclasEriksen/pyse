@@ -92,6 +92,8 @@ class GameWorld(World):
         # self.window.on_mouse_scroll = self.on_mouse_scroll
         self.window.on_key_press = self.on_key_press
         self.window.on_key_release = self.on_key_release
+        self.kb_state = pyglet.window.key.KeyStateHandler()
+        self.window.push_handlers(self.kb_state)
         self.mouse_click = None
         self.key_press = None
         # self.window.on_resize = self.on_resize
@@ -221,6 +223,7 @@ class GameWorld(World):
         self.add_system(systems.MousePressAreaSystem(self))
         self.add_system(systems.MousePressSystem(self))
         self.add_system(systems.KeyPressSystem(self))
+        self.add_system(systems.ControllerMovementHandlig(self))
         self.add_system(systems.SpritePosSystem(self))
         self.add_system(systems.MouseBoundSpriteSystem(self))
         self.add_system(systems.FloatingSpritePosSystem(self))
@@ -301,6 +304,7 @@ returning debug texture".format(
             debug=debug_img,
             player_l=player_img_l,
             player_r=player_img_r,
+            player_u=block_img,
             block=block_img,
             bg=bg_img,
             ground=ground_img,
